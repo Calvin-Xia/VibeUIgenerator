@@ -6,17 +6,6 @@ pages_build_output_dir = ".vercel/output/static"
 
 [vars]
 NEXT_PUBLIC_APP_NAME = "VibeUI Generator"
-NODE_VERSION = "20"
 
 [env.production.vars]
 NEXT_PUBLIC_APP_NAME = "VibeUI Generator"
-
-# 敏感配置通过 wrangler secret 管理
-# 运行: npx wrangler secret put KEY_NAME
-
-[[routes]]
-pattern = "/api/*"
-zone_name = ""
-
-[build]
-commands = "npm run build"

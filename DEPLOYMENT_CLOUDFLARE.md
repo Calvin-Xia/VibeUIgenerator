@@ -170,20 +170,10 @@ pages_build_output_dir = ".vercel/output/static"
 # 环境变量
 [vars]
 NEXT_PUBLIC_APP_NAME = "VibeUI Generator"
-NODE_VERSION = "20"
 
 # 生产环境变量覆盖
 [env.production.vars]
 NEXT_PUBLIC_APP_NAME = "VibeUI Generator"
-
-# 路由配置（可选）
-# [[routes]]
-# pattern = "/api/*"
-# zone_name = ""
-
-# 构建配置
-[build]
-commands = "npm run build"
 ```
 
 **配置参数详解**：
@@ -194,6 +184,11 @@ commands = "npm run build"
 | `compatibility_date` | 兼容日期 | `"2024-11-18"` |
 | `compatibility_flags` | 运行时标志 | `["nodejs_compat"]` |
 | `pages_build_output_dir` | 构建输出目录 | `".vercel/output/static"` |
+
+**重要提示**：
+- Cloudflare Pages 不支持 `build.commands` 字段
+- Cloudflare Pages 不支持 `routes` 配置
+- 环境变量应在 `[vars]` 和 `[env.production.vars]` 中分别定义
 
 ### 第六步：更新依赖处理
 
