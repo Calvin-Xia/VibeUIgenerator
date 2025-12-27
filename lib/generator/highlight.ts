@@ -1,23 +1,39 @@
-import { createHighlighter, Highlighter } from 'shiki';
+import { createHighlighter, type Highlighter } from 'shiki';
 
 type Language = 'typescript' | 'vue' | 'html' | 'css' | 'javascript' | 'json';
 
 let highlighter: Highlighter | null = null;
-let theme: 'github-dark' | 'github-light' = 'github-dark';
+let highlightFailed = false;
 
-async function getHighlighterInstance(): Promise<Highlighter> {
+async function getHighlighterInstance(): Promise<Highlighter | null> {
+  if (highlightFailed) {
+    return null;
+  }
+
   if (!highlighter) {
-    highlighter = await createHighlighter({
-      themes: ['github-dark', 'github-light'],
-      langs: ['typescript', 'vue', 'html', 'css', 'javascript', 'json']
-    });
+    try {
+      highlighter = await createHighlighter({
+        themes: ['github-dark', 'github-light'],
+        langs: ['typescript', 'vue', 'html', 'css', 'javascript', 'json'],
+        bundle: true
+      });
+    } catch (error) {
+      console.error('Failed to initialize shiki highlighter:', error);
+      highlightFailed = true;
+      return null;
+    }
   }
   return highlighter;
 }
 
 export async function highlightCode(code: string, language: string, isDarkMode: boolean = true): Promise<string> {
   const hl = await getHighlighterInstance();
-  theme = isDarkMode ? 'github-dark' : 'github-light';
+
+  if (!hl) {
+    return escapeHtml(code);
+  }
+
+  const theme = isDarkMode ? 'github-dark' : 'github-light';
 
   const langMap: Record<string, Language> = {
     'tsx': 'typescript',
@@ -45,16 +61,15 @@ export async function highlightCode(code: string, language: string, isDarkMode: 
 }
 
 export function escapeHtml(text: string): string {
-  return text
+  return `<pre style="margin:0;font-family:monospace;font-size:12px;line-height:24px;white-space:pre-wrap;"><code>${text
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
+    .replace(/'/g, '&#039;')}</code></pre>`;
 }
 
 export function setSyntaxTheme(isDarkMode: boolean) {
-  theme = isDarkMode ? 'github-dark' : 'github-light';
 }
 
 export async function getSupportedLanguages(): Promise<string[]> {
