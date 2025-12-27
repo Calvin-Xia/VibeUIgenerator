@@ -82,7 +82,10 @@ export function CanvasBackground() {
             backdropFilter: `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`,
             WebkitBackdropFilter: `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`,
             backgroundColor: `rgba(${glassRgb.r}, ${glassRgb.g}, ${glassRgb.b}, ${effects.glass.opacity})`,
-            borderRadius: '1rem'
+            borderRadius: '1rem',
+            transition: 'backdrop-filter 150ms ease-out, background-color 150ms ease-out',
+            willChange: 'backdrop-filter',
+            transform: 'translateZ(0)'
           }}
         />
       )}

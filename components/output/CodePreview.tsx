@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Check, Copy, Download } from 'lucide-react';
+import { EnhancedCode } from './EnhancedCode';
 
 interface CodePreviewProps {
   code: string;
@@ -107,15 +108,12 @@ export function CodePreview({ code, language, filename, className }: CodePreview
           </button>
         </div>
       </div>
-      <pre
-        ref={codeRef}
-        className="overflow-x-auto p-4 text-xs leading-relaxed scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
-        style={{
-          fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace'
-        }}
-      >
-        <code>{code}</code>
-      </pre>
+      <EnhancedCode
+        code={code}
+        language={language}
+        className="max-h-[400px]"
+        showLineNumbers={true}
+      />
     </div>
   );
 }

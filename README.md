@@ -5,6 +5,8 @@ VibeUI Generator 是一个可视化 CSS 组件样式生成器，支持实时调�
 ## 功能特性
 
 - **实时可视化调参**：通过滑杆、颜色选择器等控件实时调整组件样式
+- **语法高亮显示**：基于 Shiki 的专业级代码语法高亮，支持 React、Vue、HTML、CSS、Tailwind、JSON 等多种语言
+- **强化代码展示**：行号显示、垂直滚动、主题适配，提升代码阅读体验
 - **多格式导出**：支持导出 React 组件、Vue 组件、CSS Variables、原生 CSS、Tailwind 配置、HTML 片段和 JSON 设计令牌
 - **代码预览与复制**：内置代码预览面板，支持语法高亮、一键复制和下载
 - **批量导出**：支持一次性导出所有格式的代码文件
@@ -77,8 +79,11 @@ VibeUIgenerator/
 │   │   ├── CodeBlock.tsx       # 代码块显示
 │   │   ├── CodePreview.tsx     # 代码预览组件
 │   │   ├── CodeTabs.tsx        # 代码格式标签页
+│   │   ├── EnhancedCode.tsx    # 强化代码展示（行号+滚动）
+│   │   ├── SyntaxHighlighter.tsx # 语法高亮组件
 │   │   ├── ExportButtons.tsx   # 导出操作按钮
-│   │   └── ExportModal.tsx     # 导出模态框
+│   │   ├── ExportModal.tsx     # 导出模态框
+│   │   └── index.ts            # 组件导出入口
 │   ├── presets/                # 预设管理面板
 │   │   └── PresetPanel.tsx     # 预设面板
 │   └── ui/                     # shadcn/ui 基础组件
@@ -86,6 +91,7 @@ VibeUIgenerator/
 │   ├── generator/              # 样式生成引擎
 │   │   ├── index.ts            # 主生成器入口
 │   │   ├── export.ts           # 代码导出生成器（React/Vue/HTML/CSS/Tailwind/JSON）
+│   │   ├── highlight.ts        # 代码语法高亮（Shiki）
 │   │   ├── color.ts            # 颜色工具函数
 │   │   ├── shadow.ts           # 阴影生成算法
 │   │   └── normalize.ts        # URL 编解码
@@ -422,7 +428,7 @@ import { VibeButton } from './VibeButton.vue';
 - **状态管理**：Zustand (with persist middleware)
 - **动画**：Framer Motion
 - **颜色处理**：culori
-- **代码高亮**：Shiki
+- **代码高亮**：Shiki (多语言支持)
 - **图片导出**：html-to-image
 - **URL 压缩**：lz-string
 - **图标**：Lucide React
