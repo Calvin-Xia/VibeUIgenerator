@@ -35,7 +35,7 @@ export default function Home() {
         }
         const presets = useVibeStore.getState().presets;
         if (!presets.builtIn || presets.builtIn.length === 0) {
-          presets.setBuiltIn(loadPresets());
+          actions.setBuiltIn(loadPresets());
         }
       } catch (error) {
         console.error('Failed to initialize:', error);

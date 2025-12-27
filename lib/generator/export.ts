@@ -100,7 +100,7 @@ export function ${componentName}({
     opacity: disabled ? 0.5 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
     transform: isActive ? 'scale(0.98)' : isHovered ? 'scale(1.02)' : 'scale(1)',
-    boxShadow: isHovered ? '${shadowToString(hoverShadow)}' : '${shadowToString(mainShadow)}',
+    boxShadow: isHovered ? hoverShadow : mainShadow,
     ...buttonStyles[variant]
   };
 

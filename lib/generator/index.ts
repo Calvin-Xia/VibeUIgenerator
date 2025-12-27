@@ -99,7 +99,7 @@ export function getButtonStyles(tokens: VibeTokens): React.CSSProperties {
 
   if (effects.glass.enabled) {
     styles.backdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
-    styles.webkitBackdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
+    styles.WebkitBackdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
     styles.backgroundColor = withOpacity(tokens.theme.palette.surface, effects.glass.opacity);
     styles.border = `${effects.border.width}px solid ${withOpacity(tokens.theme.palette.border, 0.2)}`;
   }
@@ -137,7 +137,7 @@ export function getCardStyles(tokens: VibeTokens): React.CSSProperties {
 
   if (effects.glass.enabled) {
     styles.backdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
-    styles.webkitBackdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
+    styles.WebkitBackdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
     styles.backgroundColor = withOpacity(tokens.theme.palette.surface, effects.glass.opacity);
     styles.border = `${effects.border.width}px solid ${withOpacity(tokens.theme.palette.border, 0.2)}`;
   }

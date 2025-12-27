@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useVibeStore } from '@/lib/store/vibeStore';
-import { generateCSS, generateHTMLSnippets, generateReactComponent, generateVueComponent, generateCSSVariables, generateTailwindConfig, generateJSONTokens, generateAllExports } from '@/lib/generator/export';
+import { generateCSSVariables, generateHTMLSnippets, generateReactComponent, generateVueComponent, generateTailwindConfig, generateJSONTokens, generateAllExports } from '@/lib/generator/export';
 import { ExportModal } from './ExportModal';
 import { cn } from '@/lib/utils';
 import { Code2, Copy, Download } from 'lucide-react';

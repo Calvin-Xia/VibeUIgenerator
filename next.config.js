@@ -5,6 +5,11 @@ const nextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ['shiki'],
+  experimental: {
+    turbo: {
+      resolveAlias: {},
+    },
+  },
 };
 
 module.exports = nextConfig;

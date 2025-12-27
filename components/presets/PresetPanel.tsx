@@ -62,19 +62,27 @@ function PresetCard({ preset, isFavorite, onApply, onToggleFavorite, onDelete, i
         <div className="p-3">
           <div className="flex items-center justify-between">
             <h3 className="font-medium truncate">{preset.name}</h3>
-            <button
+            <div
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  onToggleFavorite();
+                }
+              }}
               onClick={(e) => {
                 e.stopPropagation();
                 onToggleFavorite();
               }}
-              className={`rounded p-1 transition-colors ${
+              className={`rounded p-1 transition-colors cursor-pointer ${
                 isFavorite
                   ? 'text-red-500 hover:bg-red-50'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
               <Heart className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
-            </button>
+            </div>
           </div>
           {preset.description && (
             <p className="mt-1 text-xs text-muted-foreground line-clamp-1">
@@ -85,15 +93,23 @@ function PresetCard({ preset, isFavorite, onApply, onToggleFavorite, onDelete, i
       </button>
 
       {!isBuiltIn && onDelete && (
-        <button
+        <div
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              setShowDeleteConfirm(true);
+            }
+          }}
           onClick={(e) => {
             e.stopPropagation();
             setShowDeleteConfirm(true);
           }}
-          className="absolute right-2 top-2 rounded bg-background/80 p-1 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-destructive hover:text-destructive-foreground"
+          className="absolute right-2 top-2 rounded bg-background/80 p-1 opacity-0 backdrop-blur-sm transition-opacity group-hover:opacity-100 hover:bg-destructive hover:text-destructive-foreground cursor-pointer"
         >
           <Trash2 className="h-3 w-3" />
-        </button>
+        </div>
       )}
 
       <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>

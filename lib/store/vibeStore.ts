@@ -164,7 +164,7 @@ export const useVibeStore = create<StoreState>()(
   )
 );
 
-export const createActions = (set: (fn: (state: StoreState) => Partial<StoreState>) => void, get: () => StoreState) => ({
+export const createActions = (set: (partial: Partial<StoreState> | ((state: StoreState) => Partial<StoreState>)) => void, get: () => StoreState) => ({
   setToken: <T>(path: string, value: T) => {
     set((state) => {
       const keys = path.split('.');
@@ -311,8 +311,8 @@ export const createActions = (set: (fn: (state: StoreState) => Partial<StoreStat
   },
 
   setSelectedState: (state: ComponentState) => {
-    set((state) => ({
-      ui: { ...state.ui, selectedState: state }
+    set((currentState) => ({
+      ui: { ...currentState.ui, selectedState: state }
     }));
   },
 
