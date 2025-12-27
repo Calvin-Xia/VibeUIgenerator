@@ -7,6 +7,7 @@ import { useVibeStore, createActions } from '@/lib/store/vibeStore';
 import { loadPresets, getPresetById } from '@/lib/presets/builtIn';
 import { toast } from '@/components/ui/use-toast';
 import { ExportModal } from '@/components/output/ExportModal';
+import { useHydrated } from '@/lib/utils';
 import {
   Sun,
   Moon,
@@ -37,11 +38,7 @@ export function TopBar() {
   const [showPresets, setShowPresets] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  const hydrated = useHydrated();
 
   const copyShareLink = async () => {
     const url = actions.getShareURL();
@@ -97,7 +94,7 @@ export function TopBar() {
             <ChevronDown className="h-3 w-3" />
           </button>
 
-          {mounted && (
+          {hydrated && (
             <AnimatePresence>
               {showPresets && (
                 <>
@@ -174,7 +171,7 @@ export function TopBar() {
         </button>
       </div>
 
-      {mounted && createPortal(
+      {hydrated && createPortal(
         <ExportModal
           isOpen={showExportModal}
           onClose={() => setShowExportModal(false)}

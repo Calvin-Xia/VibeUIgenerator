@@ -159,7 +159,12 @@ export const useVibeStore = create<StoreState>()(
           saved: state.presets.saved,
           favorites: state.presets.favorites
         }
-      })
+      }),
+      onRehydrateStorage: () => (state) => {
+        if (state) {
+          state.ui.initialized = true;
+        }
+      }
     }
   )
 );

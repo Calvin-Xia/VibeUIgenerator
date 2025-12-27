@@ -14,8 +14,7 @@ async function getHighlighterInstance(): Promise<Highlighter | null> {
     try {
       highlighter = await createHighlighter({
         themes: ['github-dark', 'github-light'],
-        langs: ['typescript', 'vue', 'html', 'css', 'javascript', 'json'],
-        bundle: true
+        langs: ['typescript', 'vue', 'html', 'css', 'javascript', 'json']
       });
     } catch (error) {
       console.error('Failed to initialize shiki highlighter:', error);

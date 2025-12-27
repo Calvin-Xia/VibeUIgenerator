@@ -1,15 +1,17 @@
-import next from 'eslint-config-next';
 import tseslint from 'typescript-eslint';
+import hooksPlugin from 'eslint-plugin-react-hooks';
 
 export default tseslint.config(
   {
-    ignores: ['.next/', 'node_modules/', 'out/', '.output/']
+    ignores: ['.next/', 'node_modules/', 'out/', '.output/', 'functions/']
   },
-  ...next({ root: true }),
   {
+    plugins: {
+      'react-hooks': hooksPlugin
+    },
     rules: {
-      '@typescript-eslint/no-explicit-any': 'off',
-      'react-hooks/exhaustive-deps': 'warn'
+      ...hooksPlugin.configs.recommended.rules,
+      '@typescript-eslint/no-explicit-any': 'off'
     }
   }
 );

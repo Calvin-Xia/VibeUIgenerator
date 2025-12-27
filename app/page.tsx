@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo } from 'react';
+import { Suspense, useEffect, useState, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '@/components/AppShell';
@@ -9,7 +9,7 @@ import { decodeFromURL } from '@/lib/generator/normalize';
 import { loadPresets } from '@/lib/presets/builtIn';
 import { Loader2 } from 'lucide-react';
 
-export default function Home() {
+function AppContent() {
   const searchParams = useSearchParams();
   const initialized = useVibeStore((state) => state.ui.initialized);
   const ui = useVibeStore((state) => state.ui);
@@ -74,5 +74,28 @@ export default function Home() {
         <AppShell />
       </motion.div>
     </AnimatePresence>
+  );
+}
+
+function LoadingFallback() {
+  return (
+    <div className="flex h-screen w-full items-center justify-center bg-background">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="flex flex-col items-center gap-4"
+      >
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm text-muted-foreground">Loading VibeUI Generator...</p>
+      </motion.div>
+    </div>
+  );
+}
+
+export default function Home() {
+  return (
+    <Suspense fallback={<LoadingFallback />}>
+      <AppContent />
+    </Suspense>
   );
 }

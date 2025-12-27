@@ -36,12 +36,14 @@
     "zustand": "^4.5.4"
   },
   "devDependencies": {
+    "@cloudflare/next-on-pages": "^1.13.16",
     "@types/node": "^20.14.14",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
     "autoprefixer": "^10.4.19",
     "eslint": "^9.39.2",
     "eslint-config-next": "^16.1.1",
+    "eslint-plugin-react-hooks": "^7.0.1",
     "postcss": "^8.4.40",
     "prettier": "^3.3.3",
     "prettier-plugin-tailwindcss": "^0.6.5",
