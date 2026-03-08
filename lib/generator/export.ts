@@ -10,15 +10,97 @@ export interface ExportResult {
   language: string;
 }
 
-function shadowToString(shadow: { x: number; y: number; blur: number; spread: number; inset: boolean; color: string }): string {
-  const inset = shadow.inset ? 'inset ' : '';
-  return `${inset}${shadow.x}px ${shadow.y}px ${shadow.blur}px ${shadow.spread}px ${shadow.color}`;
+interface ResolvedCardExportStyles {
+  backgroundColor: string;
+  border: string;
+  borderRadius: number;
+  padding: number;
+  fontFamily: string;
+  fontSize: number;
+  fontWeight: number;
+  letterSpacing: string;
+  color: string;
+  boxShadow: string;
+  transition: string;
+  cursor: 'pointer';
+  hoverLift: number;
+  glowBorderRadius: number;
+  backdropFilter?: string;
+  webkitBackdropFilter?: string;
 }
 
-export function generateReactComponent(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
-  const { theme, effects, interaction, button, card } = tokens;
-  const rgb = hexToRgb(theme.palette.accent);
-  const cardRgb = hexToRgb(theme.palette.surface);
+function resolveCardExportStyles(tokens: VibeTokens): ResolvedCardExportStyles {
+  const { theme, effects, interaction, card } = tokens;
+
+  let backgroundColor = withOpacity(theme.palette.surface, card.surfaceAlpha);
+  let border = `${effects.border.width}px solid ${withOpacity(theme.palette.border, card.borderAlpha)}`;
+  let backdropFilter: string | undefined;
+  let webkitBackdropFilter: string | undefined;
+
+  if (effects.glass.enabled) {
+    backgroundColor = withOpacity(theme.palette.surface, effects.glass.opacity);
+    border = `${effects.border.width}px solid ${withOpacity(theme.palette.border, 0.2)}`;
+    backdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
+    webkitBackdropFilter = backdropFilter;
+  }
+
+  return {
+    backgroundColor,
+    border,
+    borderRadius: card.radius,
+    padding: card.padding,
+    fontFamily: theme.typography.fontFamily,
+    fontSize: theme.typography.fontSize,
+    fontWeight: theme.typography.fontWeight,
+    letterSpacing: `${theme.typography.letterSpacing}em`,
+    color: theme.palette.text,
+    boxShadow: shadowFromElevation({
+      elevation: effects.shadow.elevation,
+      softness: effects.shadow.softness,
+      spread: effects.shadow.spread,
+      color: effects.shadow.color
+    }),
+    transition: `all ${interaction.transition.duration}ms ${interaction.transition.easing}`,
+    cursor: 'pointer',
+    hoverLift: 2,
+    glowBorderRadius: card.radius + 8,
+    backdropFilter,
+    webkitBackdropFilter
+  };
+}
+
+function renderReactCardBackdropLines(styles: ResolvedCardExportStyles): string {
+  if (!styles.backdropFilter || !styles.webkitBackdropFilter) {
+    return '';
+  }
+
+  return `
+    backdropFilter: '${styles.backdropFilter}',
+    WebkitBackdropFilter: '${styles.webkitBackdropFilter}',`;
+}
+
+function renderVueCardBackdropLines(styles: ResolvedCardExportStyles): string {
+  if (!styles.backdropFilter || !styles.webkitBackdropFilter) {
+    return '';
+  }
+
+  return `
+  backdropFilter: '${styles.backdropFilter}',
+  WebkitBackdropFilter: '${styles.webkitBackdropFilter}',`;
+}
+
+function renderCssCardBackdropLines(styles: ResolvedCardExportStyles): string {
+  if (!styles.backdropFilter || !styles.webkitBackdropFilter) {
+    return '';
+  }
+
+  return `
+  backdrop-filter: ${styles.backdropFilter};
+  -webkit-backdrop-filter: ${styles.webkitBackdropFilter};`;
+}
+
+function generateReactButtonComponent(tokens: VibeTokens): ExportResult {
+  const { theme, effects, interaction, button } = tokens;
 
   const mainShadow = shadowFromElevation({
     elevation: effects.shadow.elevation,
@@ -34,13 +116,11 @@ export function generateReactComponent(tokens: VibeTokens, componentType: 'butto
     color: effects.shadow.color
   });
 
-  const componentName = componentType === 'button' ? 'VibeButton' : 'VibeCard';
-
   const code = `'use client';
 
 import React, { useState } from 'react';
 
-export interface ${componentName}Props {
+export interface VibeButtonProps {
   variant?: 'solid' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
   disabled?: boolean;
@@ -66,13 +146,13 @@ const buttonStyles = {
   }
 };
 
-export function ${componentName}({
+export function VibeButton({
   variant = 'solid',
   size = 'md',
   disabled = false,
-  children = '${componentType === 'button' ? 'Click Me' : 'Card Content'}',
+  children = 'Click Me',
   onClick
-}: ${componentName}Props) {
+}: VibeButtonProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isActive, setIsActive] = useState(false);
 
@@ -100,12 +180,12 @@ export function ${componentName}({
     opacity: disabled ? 0.5 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
     transform: isActive ? 'scale(0.98)' : isHovered ? 'scale(1.02)' : 'scale(1)',
-    boxShadow: isHovered ? hoverShadow : mainShadow,
+    boxShadow: isHovered ? '${hoverShadow}' : '${mainShadow}',
     ...buttonStyles[variant]
   };
 
   return (
-    <${componentType === 'button' ? 'button' : 'div'}
+    <button
       style={baseStyle}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
@@ -115,24 +195,83 @@ export function ${componentName}({
       disabled={disabled}
     >
       {children}
-    </${componentType === 'button' ? 'button' : 'div'}>
+    </button>
   );
 }
 
-export default ${componentName};
+export default VibeButton;
 `;
 
   return {
     code,
-    filename: `${componentName.toLowerCase()}.tsx`,
+    filename: 'vibebutton.tsx',
     language: 'typescript'
   };
 }
 
-export function generateVueComponent(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
-  const { theme, effects, interaction, button, card } = tokens;
+function generateReactCardComponent(tokens: VibeTokens): ExportResult {
+  const styles = resolveCardExportStyles(tokens);
 
-  const componentName = componentType === 'button' ? 'VibeButton' : 'VibeCard';
+  const code = `'use client';
+
+import React, { useState } from 'react';
+
+export interface VibeCardProps {
+  children?: React.ReactNode;
+}
+
+export function VibeCard({
+  children = 'Card Content'
+}: VibeCardProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
+  const baseStyle: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    padding: ${styles.padding},
+    fontFamily: '${styles.fontFamily}',
+    fontSize: ${styles.fontSize},
+    fontWeight: ${styles.fontWeight},
+    letterSpacing: '${styles.letterSpacing}',
+    borderRadius: ${styles.borderRadius},
+    border: '${styles.border}',
+    backgroundColor: '${styles.backgroundColor}',
+    color: '${styles.color}',
+    boxShadow: '${styles.boxShadow}',
+    transition: '${styles.transition}',
+    cursor: '${styles.cursor}',
+    transform: isHovered ? 'translateY(-${styles.hoverLift}px)' : 'translateY(0)'${renderReactCardBackdropLines(styles)}
+  };
+
+  return (
+    <div
+      style={baseStyle}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      {children}
+    </div>
+  );
+}
+
+export default VibeCard;
+`;
+
+  return {
+    code,
+    filename: 'vibecard.tsx',
+    language: 'typescript'
+  };
+}
+
+export function generateReactComponent(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
+  return componentType === 'button'
+    ? generateReactButtonComponent(tokens)
+    : generateReactCardComponent(tokens);
+}
+
+function generateVueButtonComponent(tokens: VibeTokens): ExportResult {
+  const { theme, effects, interaction, button } = tokens;
 
   const code = `<script setup lang="ts">
 import { ref, computed } from 'vue';
@@ -193,7 +332,7 @@ function handleClick(event: MouseEvent) {
 </script>
 
 <template>
-  <${componentType}
+  <button
     :style="baseStyles"
     @mouseenter="isHovered = true"
     @mouseleave="isHovered = false"
@@ -202,12 +341,12 @@ function handleClick(event: MouseEvent) {
     @click="handleClick"
     :disabled="disabled"
   >
-    <slot>{{ componentType === 'button' ? 'Click Me' : 'Card Content' }}</slot>
-  </${componentType}>
+    <slot>Click Me</slot>
+  </button>
 </template>
 
 <style scoped>
-${componentType} {
+button {
   outline: none;
 }
 </style>
@@ -215,19 +354,70 @@ ${componentType} {
 
   return {
     code,
-    filename: `${componentName.toLowerCase()}.vue`,
+    filename: 'vibebutton.vue',
     language: 'vue'
   };
 }
 
-export function generateHTMLSnippets(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
-  const { theme, effects, interaction, button, card } = tokens;
+function generateVueCardComponent(tokens: VibeTokens): ExportResult {
+  const styles = resolveCardExportStyles(tokens);
 
-  const code = `<!-- ${componentType === 'button' ? 'VibeUI Button' : 'VibeUI Card'} - Generated by VibeUI Generator -->
+  const code = `<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+const isHovered = ref(false);
+
+const baseStyles = computed(() => ({
+  display: 'flex' as const,
+  flexDirection: 'column' as const,
+  padding: '${styles.padding}px',
+  fontFamily: '${styles.fontFamily}',
+  fontSize: '${styles.fontSize}px',
+  fontWeight: ${styles.fontWeight},
+  letterSpacing: '${styles.letterSpacing}',
+  borderRadius: '${styles.borderRadius}px',
+  border: '${styles.border}',
+  backgroundColor: '${styles.backgroundColor}',
+  color: '${styles.color}',
+  boxShadow: '${styles.boxShadow}',
+  transition: '${styles.transition}',
+  cursor: '${styles.cursor}',
+  transform: isHovered.value ? 'translateY(-${styles.hoverLift}px)' : 'translateY(0)'${renderVueCardBackdropLines(styles)}
+}));
+</script>
+
+<template>
+  <div
+    :style="baseStyles"
+    @mouseenter="isHovered = true"
+    @mouseleave="isHovered = false"
+  >
+    <slot>Card Content</slot>
+  </div>
+</template>
+`;
+
+  return {
+    code,
+    filename: 'vibecard.vue',
+    language: 'vue'
+  };
+}
+
+export function generateVueComponent(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
+  return componentType === 'button'
+    ? generateVueButtonComponent(tokens)
+    : generateVueCardComponent(tokens);
+}
+
+function generateHTMLButtonSnippet(tokens: VibeTokens): ExportResult {
+  const { theme, effects, interaction, button } = tokens;
+
+  const code = `<!-- VibeUI Button - Generated by VibeUI Generator -->
 
 <style>
-.vibe-${componentType} {
-  display: ${componentType === 'button' ? 'inline-flex' : 'flex'};
+.vibe-button {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.5em;
@@ -246,28 +436,28 @@ export function generateHTMLSnippets(tokens: VibeTokens, componentType: 'button'
   outline: none;
 }
 
-.vibe-${componentType}:hover {
+.vibe-button:hover {
   transform: translateY(-${interaction.hover.lift}px);
   filter: brightness(${1 + interaction.hover.brighten});
 }
 
-.vibe-${componentType}:active {
+.vibe-button:active {
   transform: translateY(${interaction.active.press}px);
   filter: brightness(${1 - interaction.active.darken});
 }
 
-.vibe-${componentType}:disabled {
+.vibe-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
   pointer-events: none;
 }
 
 ${effects.glow.enabled ? `
-.vibe-${componentType}.has-glow {
+.vibe-button.has-glow {
   position: relative;
 }
 
-.vibe-${componentType}.has-glow::before {
+.vibe-button.has-glow::before {
   content: '';
   position: absolute;
   inset: -8px;
@@ -278,39 +468,85 @@ ${effects.glow.enabled ? `
   filter: blur(12px);
 }
 ` : ''}
-
-${componentType === 'card' ? `
-.vibe-${componentType} {
-  flex-direction: column;
-  background-color: ${withOpacity(theme.palette.surface, card.surfaceAlpha)};
-  padding: ${card.padding}px;
-}
-
-.vibe-${componentType}:hover {
-  transform: translateY(-${Math.round(interaction.hover.lift / 2)}px);
-}
-` : ''}
 </style>
 
-${componentType === 'button' ? `
 <!-- Button HTML -->
 <button class="vibe-button ${button.variant !== 'solid' ? 'variant-' + button.variant : ''}${effects.glow.enabled ? ' has-glow' : ''}"${button.variant !== 'solid' ? '\n  data-variant="' + button.variant + '"' : ''}>
   Click Me
 </button>
-` : `
+`;
+
+  return {
+    code,
+    filename: 'vibe-button.html',
+    language: 'html'
+  };
+}
+
+function generateHTMLCardSnippet(tokens: VibeTokens): ExportResult {
+  const styles = resolveCardExportStyles(tokens);
+  const { theme, effects } = tokens;
+
+  const code = `<!-- VibeUI Card - Generated by VibeUI Generator -->
+
+<style>
+.vibe-card {
+  display: flex;
+  flex-direction: column;
+  padding: ${styles.padding}px;
+  font-family: ${styles.fontFamily};
+  font-size: ${styles.fontSize}px;
+  font-weight: ${styles.fontWeight};
+  letter-spacing: ${styles.letterSpacing};
+  border-radius: ${styles.borderRadius}px;
+  border: ${styles.border};
+  background-color: ${styles.backgroundColor};
+  color: ${styles.color};
+  box-shadow: ${styles.boxShadow};
+  transition: ${styles.transition};
+  cursor: ${styles.cursor};${renderCssCardBackdropLines(styles)}
+}
+
+.vibe-card:hover {
+  transform: translateY(-${styles.hoverLift}px);
+}
+
+${effects.glow.enabled ? `
+.vibe-card.has-glow {
+  position: relative;
+}
+
+.vibe-card.has-glow::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  background: radial-gradient(circle, ${theme.palette.accent}40 0%, transparent 70%);
+  border-radius: ${styles.glowBorderRadius}px;
+  z-index: -1;
+  opacity: 0.5;
+  filter: blur(12px);
+}
+` : ''}
+</style>
+
 <!-- Card HTML -->
 <div class="vibe-card${effects.glow.enabled ? ' has-glow' : ''}">
   <h3>Card Title</h3>
   <p>Card content goes here. You can add any HTML content inside the card.</p>
 </div>
-`}
 `;
 
   return {
     code,
-    filename: `vibe-${componentType}.html`,
+    filename: 'vibe-card.html',
     language: 'html'
   };
+}
+
+export function generateHTMLSnippets(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
+  return componentType === 'button'
+    ? generateHTMLButtonSnippet(tokens)
+    : generateHTMLCardSnippet(tokens);
 }
 
 export function generateTailwindConfig(tokens: VibeTokens): ExportResult {

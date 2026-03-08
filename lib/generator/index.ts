@@ -21,19 +21,29 @@ export {
   generateAllExports
 };
 
+function parseCSSVariables(code: string): Record<string, string> {
+  const entries = Array.from(code.matchAll(/--([\w-]+):\s*([^;]+);/g)).map(([_, name, value]) => [
+    name,
+    value.trim()
+  ]);
+
+  return Object.fromEntries(entries);
+}
+
 export function generateVibeStyles(tokens: VibeTokens): GeneratedStyles {
   const cssVars = generateCSSVariables(tokens);
   const tailwindLayer = generateTailwindConfig(tokens);
-  const htmlSnippet = generateHTMLSnippets(tokens, 'button');
+  const buttonHtmlSnippet = generateHTMLSnippets(tokens, 'button');
+  const cardHtmlSnippet = generateHTMLSnippets(tokens, 'card');
 
   return {
-    cssVars: JSON.parse(cssVars.code.replace(/--[\s\S]*?: [\s\S]*?;/g, (match) => {
-      const [name, value] = match.split(':');
-      return `"${name.trim().replace('--', '')}": "${value.trim()}",`;
-    })),
+    cssVars: parseCSSVariables(cssVars.code),
     cssText: '',
     tailwindLayer: tailwindLayer.code,
-    htmlSnippet: { button: htmlSnippet.code, card: htmlSnippet.code }
+    htmlSnippet: {
+      button: buttonHtmlSnippet.code,
+      card: cardHtmlSnippet.code
+    }
   };
 }
 
