@@ -253,7 +253,7 @@ function sanitizePersistedState(persistedState: unknown, currentState: StoreStat
 
 export const useVibeStore = create<StoreState>()(
   persist(
-    () => ({
+    (): StoreState => ({
       tokens: cloneValue(DEFAULT_TOKENS),
       ui: {
         selectedComponent: 'button',
@@ -505,3 +505,4 @@ export function useContrastRatio() {
 }
 
 export { DEFAULT_TOKENS };
+

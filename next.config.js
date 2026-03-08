@@ -1,3 +1,5 @@
+const path = require('path');
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -5,10 +7,9 @@ const nextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ['shiki'],
-  experimental: {
-    turbo: {
-      resolveAlias: {},
-    },
+  outputFileTracingRoot: path.resolve(__dirname),
+  turbopack: {
+    resolveAlias: {},
   },
 };
 

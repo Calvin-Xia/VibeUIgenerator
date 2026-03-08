@@ -1,12 +1,14 @@
 import tseslint from 'typescript-eslint';
 import hooksPlugin from 'eslint-plugin-react-hooks';
+import nextPlugin from '@next/eslint-plugin-next';
 
 export default tseslint.config(
   {
-    ignores: ['.next/', 'node_modules/', 'out/', '.output/', 'functions/']
+    ignores: ['.next/**', 'node_modules/**', 'out/**', '.output/**', 'functions/**']
   },
   {
     plugins: {
+      '@next/next': nextPlugin,
       'react-hooks': hooksPlugin
     },
     rules: {
