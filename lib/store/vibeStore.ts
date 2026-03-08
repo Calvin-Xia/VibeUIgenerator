@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { VibeTokens, Preset, ComponentType, ComponentState } from '@/lib/types/tokens';
 import { generateVibeStyles } from '@/lib/generator';
-import { decodeFromURL, encodeToURL, validateTokens, addRecentScheme } from '@/lib/generator/normalize';
+import { encodeToURL, importFromJSON, validateTokens, addRecentScheme } from '@/lib/generator/normalize';
 
 const DEFAULT_TOKENS: VibeTokens = {
   schemaVersion: '1.0.0',
@@ -123,10 +123,91 @@ interface StoreState {
   presets: PresetsState;
 }
 
+interface PersistedStoreState {
+  tokens?: unknown;
+  presets?: {
+    saved?: unknown;
+    favorites?: unknown;
+  };
+}
+
 function createRNG(seed: number) {
   return function() {
     seed = (seed * 9301 + 49297) % 233280;
     return seed / 233280;
+  };
+}
+
+function cloneValue<T>(value: T): T {
+  return JSON.parse(JSON.stringify(value)) as T;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isStringArray(value: unknown): value is string[] {
+  return Array.isArray(value) && value.every((item) => typeof item === 'string');
+}
+
+function isPersistedPreset(value: unknown): value is Preset {
+  if (!isRecord(value)) return false;
+  if (typeof value.id !== 'string') return false;
+  if (typeof value.name !== 'string') return false;
+  if ('description' in value && value.description !== undefined && typeof value.description !== 'string') return false;
+  if ('thumbnail' in value && value.thumbnail !== undefined && typeof value.thumbnail !== 'string') return false;
+  if ('tags' in value && value.tags !== undefined && !isStringArray(value.tags)) return false;
+  if ('isBuiltIn' in value && value.isBuiltIn !== undefined && typeof value.isBuiltIn !== 'boolean') return false;
+  if ('createdAt' in value && value.createdAt !== undefined && typeof value.createdAt !== 'number') return false;
+
+  return validateTokens(value.tokens);
+}
+
+function sanitizePersistedState(persistedState: unknown, currentState: StoreState): StoreState {
+  if (!isRecord(persistedState)) {
+    return currentState;
+  }
+
+  const persisted = persistedState as PersistedStoreState;
+
+  let tokens = currentState.tokens;
+  if (persisted.tokens !== undefined) {
+    if (validateTokens(persisted.tokens)) {
+      tokens = cloneValue(persisted.tokens);
+    } else {
+      console.warn('Discarding invalid persisted tokens payload and falling back to defaults.');
+      tokens = cloneValue(DEFAULT_TOKENS);
+    }
+  }
+
+  let saved = currentState.presets.saved;
+  let favorites = currentState.presets.favorites;
+
+  if (isRecord(persisted.presets)) {
+    const persistedSaved = persisted.presets.saved;
+    if (Array.isArray(persistedSaved)) {
+      const validSaved = persistedSaved.filter(isPersistedPreset);
+      if (validSaved.length !== persistedSaved.length) {
+        console.warn('Discarded invalid saved presets from persisted store.');
+      }
+      saved = validSaved.map((preset) => cloneValue(preset));
+    }
+
+    if (persisted.presets.favorites !== undefined) {
+      favorites = isStringArray(persisted.presets.favorites)
+        ? [...new Set(persisted.presets.favorites)]
+        : currentState.presets.favorites;
+    }
+  }
+
+  return {
+    ...currentState,
+    tokens,
+    presets: {
+      ...currentState.presets,
+      saved,
+      favorites
+    }
   };
 }
 
@@ -160,6 +241,7 @@ export const useVibeStore = create<StoreState>()(
           favorites: state.presets.favorites
         }
       }),
+      merge: (persistedState, currentState) => sanitizePersistedState(persistedState, currentState),
       onRehydrateStorage: () => (state) => {
         if (state) {
           state.ui.initialized = true;
@@ -175,20 +257,20 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
       const keys = path.split('.');
       const newTokens = JSON.parse(JSON.stringify(state.tokens));
       let current: any = newTokens;
-      
+
       for (let i = 0; i < keys.length - 1; i++) {
         current = current[keys[i]];
       }
-      
+
       current[keys[keys.length - 1]] = value;
 
       if (path === 'theme.radius.baseRadius') {
         newTokens.button.radius = Math.min(Math.max(Number(value) - 4, 0), 32);
         newTokens.card.radius = Math.min(Math.max(Number(value) + 4, 0), 48);
       }
-      
+
       addRecentScheme(newTokens);
-      
+
       return {
         tokens: newTokens,
         ui: { ...state.ui, version: state.ui.version + 1 }
@@ -207,21 +289,21 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
   randomize: (seed?: number) => {
     const rng = seed !== undefined ? createRNG(seed) : Math.random;
     const newTokens = JSON.parse(JSON.stringify(DEFAULT_TOKENS)) as VibeTokens;
-    
+
     const randomColor = () => {
       const hue = Math.floor(rng() * 360);
       const sat = 50 + Math.floor(rng() * 30);
       const light = 45 + Math.floor(rng() * 20);
       return `hsl(${hue}, ${sat}%, ${light}%)`;
     };
-    
+
     newTokens.theme.palette.accent = randomColor();
     newTokens.effects.shadow.elevation = Math.floor(rng() * 20);
     newTokens.effects.glass.enabled = rng() > 0.5;
     newTokens.effects.glow.enabled = rng() > 0.5;
     newTokens.button.radius = 4 + Math.floor(rng() * 12);
     newTokens.card.radius = 8 + Math.floor(rng() * 16);
-    
+
     set({
       tokens: newTokens,
       ui: { ...get().ui, version: get().ui.version + 1 }
@@ -234,20 +316,17 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
   },
 
   importJSON: (json: string) => {
-    try {
-      const tokens = JSON.parse(json) as VibeTokens;
-      if (!validateTokens(tokens)) {
-        return false;
-      }
-      set({
-        tokens,
-        ui: { ...get().ui, version: get().ui.version + 1 }
-      });
-      addRecentScheme(tokens);
-      return true;
-    } catch {
+    const tokens = importFromJSON(json);
+    if (!tokens) {
       return false;
     }
+
+    set({
+      tokens,
+      ui: { ...get().ui, version: get().ui.version + 1 }
+    });
+    addRecentScheme(tokens);
+    return true;
   },
 
   getShareURL: () => {

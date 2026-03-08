@@ -1,26 +1,28 @@
 'use client';
 
-import { Suspense, useEffect, useState, useMemo } from 'react';
+import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '@/components/AppShell';
 import { useVibeStore, createActions } from '@/lib/store/vibeStore';
 import { decodeFromURL } from '@/lib/generator/normalize';
 import { loadPresets } from '@/lib/presets/builtIn';
+import { toast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
+
+let lastInvalidShareWarning: string | null = null;
 
 function AppContent() {
   const searchParams = useSearchParams();
   const initialized = useVibeStore((state) => state.ui.initialized);
-  const ui = useVibeStore((state) => state.ui);
-  
-  const actions = useMemo(() => 
+
+  const actions = useMemo(() =>
     createActions(
       (fn) => useVibeStore.setState(fn),
       () => useVibeStore.getState()
     ),
   []);
-  
+
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -31,8 +33,19 @@ function AppContent() {
           const decoded = decodeFromURL(encoded);
           if (decoded) {
             actions.loadFromURL(decoded);
+            lastInvalidShareWarning = null;
+          } else if (lastInvalidShareWarning !== encoded) {
+            lastInvalidShareWarning = encoded;
+            toast({
+              title: 'Invalid share link',
+              description: 'This link contains an invalid or incomplete token payload.',
+              variant: 'destructive'
+            });
           }
+        } else {
+          lastInvalidShareWarning = null;
         }
+
         const presets = useVibeStore.getState().presets;
         if (!presets.builtIn || presets.builtIn.length === 0) {
           actions.setBuiltIn(loadPresets());
@@ -44,6 +57,7 @@ function AppContent() {
         useVibeStore.setState((state) => ({ ui: { ...state.ui, initialized: true } }));
       }
     };
+
     init();
   }, [searchParams, actions]);
 
