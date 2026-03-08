@@ -1,5 +1,6 @@
 import LZString from 'lz-string';
 import { VibeTokens } from '@/lib/types/tokens';
+import { isSixDigitHexColor, normalizeToSixDigitHex } from './color';
 
 const SCHEMA_VERSION = '1.0.0';
 const THEME_MODES = new Set(['light', 'dark']);
@@ -7,6 +8,10 @@ const BUTTON_VARIANTS = new Set(['solid', 'outline', 'ghost']);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function cloneTokens(tokens: VibeTokens): VibeTokens {
+  return JSON.parse(JSON.stringify(tokens)) as VibeTokens;
 }
 
 function assertRecord(value: unknown, path: string): asserts value is Record<string, unknown> {
@@ -18,6 +23,13 @@ function assertRecord(value: unknown, path: string): asserts value is Record<str
 function assertString(value: unknown, path: string): asserts value is string {
   if (typeof value !== 'string') {
     throw new Error(`${path} must be a string`);
+  }
+}
+
+function assertHexColor(value: unknown, path: string): asserts value is string {
+  assertString(value, path);
+  if (!isSixDigitHexColor(value)) {
+    throw new Error(`${path} must be a 6-digit hex color`);
   }
 }
 
@@ -33,9 +45,10 @@ function assertBoolean(value: unknown, path: string): asserts value is boolean {
   }
 }
 
-function assertOptionalString(value: unknown, path: string): void {
-  if (value !== undefined && typeof value !== 'string') {
-    throw new Error(`${path} must be a string when provided`);
+
+function assertOptionalHexColor(value: unknown, path: string): void {
+  if (value !== undefined) {
+    assertHexColor(value, path);
   }
 }
 
@@ -57,6 +70,52 @@ function assertGradientStops(value: unknown, path: string): void {
   });
 }
 
+function normalizeRequiredHexColor(value: string, path: string): string {
+  const normalized = normalizeToSixDigitHex(value);
+  if (!normalized) {
+    throw new Error(`${path} must be a 6-digit hex color`);
+  }
+
+  return normalized;
+}
+
+function normalizeOptionalHexColor(value: string | undefined, path: string): string | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+
+  return normalizeRequiredHexColor(value, path);
+}
+
+export function normalizeTokenColors(tokens: VibeTokens): VibeTokens {
+  const normalized = cloneTokens(tokens);
+
+  normalized.theme.palette.accent = normalizeRequiredHexColor(normalized.theme.palette.accent, 'theme.palette.accent');
+  normalized.theme.palette.accent2 = normalizeOptionalHexColor(normalized.theme.palette.accent2, 'theme.palette.accent2');
+  normalized.theme.palette.bg = normalizeRequiredHexColor(normalized.theme.palette.bg, 'theme.palette.bg');
+  normalized.theme.palette.surface = normalizeRequiredHexColor(normalized.theme.palette.surface, 'theme.palette.surface');
+  normalized.theme.palette.text = normalizeRequiredHexColor(normalized.theme.palette.text, 'theme.palette.text');
+  normalized.theme.palette.mutedText = normalizeRequiredHexColor(normalized.theme.palette.mutedText, 'theme.palette.mutedText');
+  normalized.theme.palette.border = normalizeRequiredHexColor(normalized.theme.palette.border, 'theme.palette.border');
+
+  normalized.effects.shadow.color = normalizeRequiredHexColor(normalized.effects.shadow.color, 'effects.shadow.color');
+
+  normalized.button.override.bg = normalizeOptionalHexColor(normalized.button.override.bg, 'button.override.bg');
+  normalized.button.override.text = normalizeOptionalHexColor(normalized.button.override.text, 'button.override.text');
+  normalized.button.override.border = normalizeOptionalHexColor(normalized.button.override.border, 'button.override.border');
+
+  return normalized;
+}
+
+function tryNormalizeTokens(tokens: unknown): VibeTokens | null {
+  try {
+    const normalized = normalizeTokenColors(tokens as VibeTokens);
+    return validateTokens(normalized) ? normalized : null;
+  } catch {
+    return null;
+  }
+}
+
 function getTokenValidationError(tokens: unknown): string | null {
   try {
     assertRecord(tokens, 'tokens');
@@ -70,13 +129,13 @@ function getTokenValidationError(tokens: unknown): string | null {
     assertEnum(tokens.theme.mode, 'theme.mode', THEME_MODES);
 
     assertRecord(tokens.theme.palette, 'theme.palette');
-    assertString(tokens.theme.palette.accent, 'theme.palette.accent');
-    assertOptionalString(tokens.theme.palette.accent2, 'theme.palette.accent2');
-    assertString(tokens.theme.palette.bg, 'theme.palette.bg');
-    assertString(tokens.theme.palette.surface, 'theme.palette.surface');
-    assertString(tokens.theme.palette.text, 'theme.palette.text');
-    assertString(tokens.theme.palette.mutedText, 'theme.palette.mutedText');
-    assertString(tokens.theme.palette.border, 'theme.palette.border');
+    assertHexColor(tokens.theme.palette.accent, 'theme.palette.accent');
+    assertOptionalHexColor(tokens.theme.palette.accent2, 'theme.palette.accent2');
+    assertHexColor(tokens.theme.palette.bg, 'theme.palette.bg');
+    assertHexColor(tokens.theme.palette.surface, 'theme.palette.surface');
+    assertHexColor(tokens.theme.palette.text, 'theme.palette.text');
+    assertHexColor(tokens.theme.palette.mutedText, 'theme.palette.mutedText');
+    assertHexColor(tokens.theme.palette.border, 'theme.palette.border');
 
     assertRecord(tokens.theme.typography, 'theme.typography');
     assertString(tokens.theme.typography.fontFamily, 'theme.typography.fontFamily');
@@ -98,7 +157,7 @@ function getTokenValidationError(tokens: unknown): string | null {
     assertNumber(tokens.effects.shadow.elevation, 'effects.shadow.elevation');
     assertNumber(tokens.effects.shadow.softness, 'effects.shadow.softness');
     assertNumber(tokens.effects.shadow.spread, 'effects.shadow.spread');
-    assertString(tokens.effects.shadow.color, 'effects.shadow.color');
+    assertHexColor(tokens.effects.shadow.color, 'effects.shadow.color');
 
     assertRecord(tokens.effects.border, 'effects.border');
     assertNumber(tokens.effects.border.width, 'effects.border.width');
@@ -144,9 +203,9 @@ function getTokenValidationError(tokens: unknown): string | null {
     assertNumber(tokens.button.height, 'button.height');
     assertNumber(tokens.button.radius, 'button.radius');
     assertRecord(tokens.button.override, 'button.override');
-    assertOptionalString(tokens.button.override.bg, 'button.override.bg');
-    assertOptionalString(tokens.button.override.text, 'button.override.text');
-    assertOptionalString(tokens.button.override.border, 'button.override.border');
+    assertOptionalHexColor(tokens.button.override.bg, 'button.override.bg');
+    assertOptionalHexColor(tokens.button.override.text, 'button.override.text');
+    assertOptionalHexColor(tokens.button.override.border, 'button.override.border');
 
     assertRecord(tokens.card, 'card');
     assertNumber(tokens.card.radius, 'card.radius');
@@ -172,12 +231,7 @@ export function decodeFromURL(encoded: string): VibeTokens | null {
     if (!decompressed) return null;
 
     const tokens = JSON.parse(decompressed) as unknown;
-
-    if (!validateTokens(tokens)) {
-      return null;
-    }
-
-    return tokens;
+    return tryNormalizeTokens(tokens);
   } catch (error) {
     console.error('Failed to decode URL:', error);
     return null;
@@ -202,8 +256,7 @@ export function exportToJSON(tokens: VibeTokens, pretty: boolean = true): string
 export function importFromJSON(json: string): VibeTokens | null {
   try {
     const tokens = JSON.parse(json) as unknown;
-    if (!validateTokens(tokens)) return null;
-    return tokens;
+    return tryNormalizeTokens(tokens);
   } catch {
     return null;
   }
@@ -223,8 +276,11 @@ export function getRecentSchemes(): VibeTokens[] {
     const stored = localStorage.getItem('vibeui:recentSchemes');
     if (!stored) return [];
 
-    const schemes = JSON.parse(stored) as VibeTokens[];
-    return schemes.filter(validateTokens).slice(0, 10);
+    const schemes = JSON.parse(stored) as unknown[];
+    return schemes
+      .map((scheme) => tryNormalizeTokens(scheme))
+      .filter((scheme): scheme is VibeTokens => scheme !== null)
+      .slice(0, 10);
   } catch {
     return [];
   }
@@ -234,13 +290,18 @@ export function addRecentScheme(tokens: VibeTokens): void {
   if (typeof window === 'undefined') return;
 
   try {
+    const normalized = tryNormalizeTokens(tokens);
+    if (!normalized) {
+      return;
+    }
+
     const recent = getRecentSchemes();
     const exists = recent.some(
-      (s) => JSON.stringify(s) === JSON.stringify(tokens)
+      (scheme) => JSON.stringify(scheme) === JSON.stringify(normalized)
     );
 
     if (!exists) {
-      const updated = [tokens, ...recent].slice(0, 10);
+      const updated = [normalized, ...recent].slice(0, 10);
       localStorage.setItem('vibeui:recentSchemes', JSON.stringify(updated));
     }
   } catch (error) {
@@ -255,8 +316,10 @@ export function getSavedPresets(): VibeTokens[] {
     const stored = localStorage.getItem('vibeui:savedPresets');
     if (!stored) return [];
 
-    const presets = JSON.parse(stored) as VibeTokens[];
-    return presets.filter(validateTokens);
+    const presets = JSON.parse(stored) as unknown[];
+    return presets
+      .map((preset) => tryNormalizeTokens(preset))
+      .filter((preset): preset is VibeTokens => preset !== null);
   } catch {
     return [];
   }
@@ -266,11 +329,17 @@ export function savePreset(tokens: VibeTokens, name: string): void {
   if (typeof window === 'undefined') return;
 
   try {
+    const normalized = tryNormalizeTokens(tokens);
+    if (!normalized) {
+      return;
+    }
+
     const saved = getSavedPresets();
-    const newPreset = { ...tokens, _presetName: name, _createdAt: Date.now() };
+    const newPreset = { ...normalized, _presetName: name, _createdAt: Date.now() };
     const updated = [newPreset, ...saved];
     localStorage.setItem('vibeui:savedPresets', JSON.stringify(updated));
   } catch (error) {
     console.error('Failed to save preset:', error);
   }
 }
+

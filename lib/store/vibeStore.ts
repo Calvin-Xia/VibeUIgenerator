@@ -2,7 +2,14 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { VibeTokens, Preset, ComponentType, ComponentState } from '@/lib/types/tokens';
 import { generateVibeStyles } from '@/lib/generator';
-import { encodeToURL, importFromJSON, validateTokens, addRecentScheme } from '@/lib/generator/normalize';
+import { hslaToHex } from '@/lib/generator/color';
+import {
+  encodeToURL,
+  importFromJSON,
+  validateTokens,
+  addRecentScheme,
+  normalizeTokenColors
+} from '@/lib/generator/normalize';
 
 const DEFAULT_TOKENS: VibeTokens = {
   schemaVersion: '1.0.0',
@@ -150,17 +157,45 @@ function isStringArray(value: unknown): value is string[] {
   return Array.isArray(value) && value.every((item) => typeof item === 'string');
 }
 
-function isPersistedPreset(value: unknown): value is Preset {
-  if (!isRecord(value)) return false;
-  if (typeof value.id !== 'string') return false;
-  if (typeof value.name !== 'string') return false;
-  if ('description' in value && value.description !== undefined && typeof value.description !== 'string') return false;
-  if ('thumbnail' in value && value.thumbnail !== undefined && typeof value.thumbnail !== 'string') return false;
-  if ('tags' in value && value.tags !== undefined && !isStringArray(value.tags)) return false;
-  if ('isBuiltIn' in value && value.isBuiltIn !== undefined && typeof value.isBuiltIn !== 'boolean') return false;
-  if ('createdAt' in value && value.createdAt !== undefined && typeof value.createdAt !== 'number') return false;
+function normalizeTokensOrNull(tokens: unknown): VibeTokens | null {
+  try {
+    const normalized = normalizeTokenColors(tokens as VibeTokens);
+    return validateTokens(normalized) ? normalized : null;
+  } catch {
+    return null;
+  }
+}
 
-  return validateTokens(value.tokens);
+function normalizePreset(preset: Preset): Preset | null {
+  const normalizedTokens = normalizeTokensOrNull(preset.tokens);
+  if (!normalizedTokens) {
+    return null;
+  }
+
+  const normalizedPreset = cloneValue(preset);
+  normalizedPreset.tokens = normalizedTokens;
+  return normalizedPreset;
+}
+
+function normalizePersistedPreset(value: unknown): Preset | null {
+  if (!isRecord(value)) return null;
+  if (typeof value.id !== 'string') return null;
+  if (typeof value.name !== 'string') return null;
+  if ('description' in value && value.description !== undefined && typeof value.description !== 'string') return null;
+  if ('thumbnail' in value && value.thumbnail !== undefined && typeof value.thumbnail !== 'string') return null;
+  if ('tags' in value && value.tags !== undefined && !isStringArray(value.tags)) return null;
+  if ('isBuiltIn' in value && value.isBuiltIn !== undefined && typeof value.isBuiltIn !== 'boolean') return null;
+  if ('createdAt' in value && value.createdAt !== undefined && typeof value.createdAt !== 'number') return null;
+
+  const normalizedTokens = normalizeTokensOrNull(value.tokens);
+  if (!normalizedTokens) {
+    return null;
+  }
+
+  return {
+    ...value,
+    tokens: normalizedTokens
+  } as Preset;
 }
 
 function sanitizePersistedState(persistedState: unknown, currentState: StoreState): StoreState {
@@ -172,8 +207,9 @@ function sanitizePersistedState(persistedState: unknown, currentState: StoreStat
 
   let tokens = currentState.tokens;
   if (persisted.tokens !== undefined) {
-    if (validateTokens(persisted.tokens)) {
-      tokens = cloneValue(persisted.tokens);
+    const normalizedTokens = normalizeTokensOrNull(persisted.tokens);
+    if (normalizedTokens) {
+      tokens = normalizedTokens;
     } else {
       console.warn('Discarding invalid persisted tokens payload and falling back to defaults.');
       tokens = cloneValue(DEFAULT_TOKENS);
@@ -186,10 +222,14 @@ function sanitizePersistedState(persistedState: unknown, currentState: StoreStat
   if (isRecord(persisted.presets)) {
     const persistedSaved = persisted.presets.saved;
     if (Array.isArray(persistedSaved)) {
-      const validSaved = persistedSaved.filter(isPersistedPreset);
+      const validSaved = persistedSaved
+        .map((preset) => normalizePersistedPreset(preset))
+        .filter((preset): preset is Preset => preset !== null);
+
       if (validSaved.length !== persistedSaved.length) {
         console.warn('Discarded invalid saved presets from persisted store.');
       }
+
       saved = validSaved.map((preset) => cloneValue(preset));
     }
 
@@ -213,8 +253,8 @@ function sanitizePersistedState(persistedState: unknown, currentState: StoreStat
 
 export const useVibeStore = create<StoreState>()(
   persist(
-    (set, get) => ({
-      tokens: DEFAULT_TOKENS,
+    () => ({
+      tokens: cloneValue(DEFAULT_TOKENS),
       ui: {
         selectedComponent: 'button',
         selectedState: 'default',
@@ -255,7 +295,7 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
   setToken: <T>(path: string, value: T) => {
     set((state) => {
       const keys = path.split('.');
-      const newTokens = JSON.parse(JSON.stringify(state.tokens));
+      const newTokens = cloneValue(state.tokens);
       let current: any = newTokens;
 
       for (let i = 0; i < keys.length - 1; i++) {
@@ -269,32 +309,44 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
         newTokens.card.radius = Math.min(Math.max(Number(value) + 4, 0), 48);
       }
 
-      addRecentScheme(newTokens);
+      const normalizedTokens = normalizeTokensOrNull(newTokens);
+      if (!normalizedTokens) {
+        console.warn(`Discarding invalid token update for ${path}.`);
+        return {};
+      }
+
+      addRecentScheme(normalizedTokens);
 
       return {
-        tokens: newTokens,
+        tokens: normalizedTokens,
         ui: { ...state.ui, version: state.ui.version + 1 }
       };
     });
   },
 
   applyPreset: (preset: Preset) => {
+    const normalizedPreset = normalizePreset(preset);
+    if (!normalizedPreset) {
+      console.warn('Discarding invalid preset application.');
+      return;
+    }
+
     set({
-      tokens: JSON.parse(JSON.stringify(preset.tokens)),
+      tokens: normalizedPreset.tokens,
       ui: { ...get().ui, version: get().ui.version + 1 }
     });
-    addRecentScheme(preset.tokens);
+    addRecentScheme(normalizedPreset.tokens);
   },
 
   randomize: (seed?: number) => {
     const rng = seed !== undefined ? createRNG(seed) : Math.random;
-    const newTokens = JSON.parse(JSON.stringify(DEFAULT_TOKENS)) as VibeTokens;
+    const newTokens = cloneValue(DEFAULT_TOKENS);
 
     const randomColor = () => {
       const hue = Math.floor(rng() * 360);
       const sat = 50 + Math.floor(rng() * 30);
       const light = 45 + Math.floor(rng() * 20);
-      return `hsl(${hue}, ${sat}%, ${light}%)`;
+      return hslaToHex(hue, sat, light);
     };
 
     newTokens.theme.palette.accent = randomColor();
@@ -304,11 +356,13 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
     newTokens.button.radius = 4 + Math.floor(rng() * 12);
     newTokens.card.radius = 8 + Math.floor(rng() * 16);
 
+    const normalizedTokens = normalizeTokenColors(newTokens);
+
     set({
-      tokens: newTokens,
+      tokens: normalizedTokens,
       ui: { ...get().ui, version: get().ui.version + 1 }
     });
-    addRecentScheme(newTokens);
+    addRecentScheme(normalizedTokens);
   },
 
   exportJSON: () => {
@@ -336,34 +390,54 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
   },
 
   loadFromURL: (tokens: VibeTokens) => {
+    const normalizedTokens = normalizeTokensOrNull(tokens);
+    if (!normalizedTokens) {
+      console.warn('Discarding invalid URL token payload.');
+      return;
+    }
+
     set({
-      tokens: JSON.parse(JSON.stringify(tokens)),
+      tokens: normalizedTokens,
       ui: { ...get().ui, version: get().ui.version + 1 }
     });
   },
 
   reset: () => {
     set({
-      tokens: JSON.parse(JSON.stringify(DEFAULT_TOKENS)),
+      tokens: cloneValue(DEFAULT_TOKENS),
       ui: { ...get().ui, version: get().ui.version + 1 }
     });
   },
 
   setBuiltIn: (presets: Preset[]) => {
+    const normalizedPresets = presets
+      .map((preset) => normalizePreset(preset))
+      .filter((preset): preset is Preset => preset !== null);
+
+    if (normalizedPresets.length !== presets.length) {
+      console.warn('Discarded invalid built-in presets during load.');
+    }
+
     set((state) => ({
-      presets: { ...state.presets, builtIn: presets }
+      presets: { ...state.presets, builtIn: normalizedPresets }
     }));
   },
 
   addSavedPreset: (preset: Preset) => {
+    const normalizedPreset = normalizePreset(preset);
+    if (!normalizedPreset) {
+      console.warn('Discarding invalid saved preset.');
+      return;
+    }
+
     set((state) => ({
-      presets: { ...state.presets, saved: [preset, ...state.presets.saved] }
+      presets: { ...state.presets, saved: [normalizedPreset, ...state.presets.saved] }
     }));
   },
 
   removeSavedPreset: (id: string) => {
     set((state) => ({
-      presets: { ...state.presets, saved: state.presets.saved.filter(p => p.id !== id) }
+      presets: { ...state.presets, saved: state.presets.saved.filter((preset) => preset.id !== id) }
     }));
   },
 
@@ -372,7 +446,7 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
       presets: {
         ...state.presets,
         favorites: state.presets.favorites.includes(id)
-          ? state.presets.favorites.filter(fid => fid !== id)
+          ? state.presets.favorites.filter((favoriteId) => favoriteId !== id)
           : [...state.presets.favorites, id]
       }
     }));

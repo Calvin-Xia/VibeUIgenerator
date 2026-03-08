@@ -3,10 +3,12 @@ import { describe, expect, it } from 'vitest';
 import { generateVibeStyles } from '@/lib/generator';
 import { withOpacity } from '@/lib/generator/color';
 import {
+  generateCSSVariables,
   generateHTMLSnippets,
   generateReactComponent,
   generateVueComponent
 } from '@/lib/generator/export';
+import { normalizeTokenColors } from '@/lib/generator/normalize';
 import type { VibeTokens } from '@/lib/types/tokens';
 
 const tokens: VibeTokens = {
@@ -105,6 +107,25 @@ const tokens: VibeTokens = {
   }
 };
 
+const migratedTokens = normalizeTokenColors({
+  ...tokens,
+  theme: {
+    ...tokens.theme,
+    palette: {
+      ...tokens.theme.palette,
+      accent: 'rgb(255, 0, 0)',
+      surface: 'hsl(0, 0%, 100%)'
+    }
+  },
+  effects: {
+    ...tokens.effects,
+    shadow: {
+      ...tokens.effects.shadow,
+      color: 'rgb(30, 41, 59)'
+    }
+  }
+});
+
 describe('card export parity', () => {
   it('generates a wrapper-only React card export', () => {
     const code = generateReactComponent(tokens, 'card').code;
@@ -176,5 +197,25 @@ describe('card export parity', () => {
     expect(code).toContain('disabled?: boolean;');
     expect(code).toContain('const sizeMap = {');
     expect(code).toContain('<button');
+  });
+
+  it('emits normalized accent and surface RGB CSS variables after migration', () => {
+    const code = generateCSSVariables(migratedTokens).code;
+
+    expect(code).toContain('--v-accent: #ff0000;');
+    expect(code).toContain('--v-accent-rgb: 255, 0, 0;');
+    expect(code).toContain('--v-surface: #ffffff;');
+    expect(code).toContain('--v-surface-rgb: 255, 255, 255;');
+  });
+
+  it('uses rgba glow colors instead of hex suffix concatenation in HTML exports', () => {
+    const buttonCode = generateHTMLSnippets(migratedTokens, 'button').code;
+    const cardCode = generateHTMLSnippets(migratedTokens, 'card').code;
+    const glowColor = withOpacity(migratedTokens.theme.palette.accent, 0x40 / 255);
+
+    expect(buttonCode).toContain(`background: radial-gradient(circle, ${glowColor} 0%, transparent 70%);`);
+    expect(cardCode).toContain(`background: radial-gradient(circle, ${glowColor} 0%, transparent 70%);`);
+    expect(buttonCode).not.toContain(`${migratedTokens.theme.palette.accent}40`);
+    expect(cardCode).not.toContain(`${migratedTokens.theme.palette.accent}40`);
   });
 });

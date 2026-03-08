@@ -67,7 +67,7 @@ export function CanvasBackground() {
               bottom: -glowSize / 2,
               right: -glowSize / 2,
               borderRadius: '50%',
-              background: `radial-gradient(circle, rgba(${glowRgb2?.r || glowRgb.r}, ${glowRgb2?.g || glowRgb.g}, ${glowRgb2?.b || glowRgb.b}, ${glowOpacity * 0.75}) 0%, transparent 70%)`,
+              background: `radial-gradient(circle, rgba(${glowRgb2?.r ?? glowRgb.r}, ${glowRgb2?.g ?? glowRgb.g}, ${glowRgb2?.b ?? glowRgb.b}, ${glowOpacity * 0.75}) 0%, transparent 70%)`,
               filter: `blur(${blurAmount * 0.8}px)`,
               animationDelay: '2s'
             }}
@@ -92,3 +92,4 @@ export function CanvasBackground() {
     </div>
   );
 }
+

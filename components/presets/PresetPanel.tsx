@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
+import { withOpacity } from '@/lib/generator/color';
 
 interface PresetCardProps {
   preset: {
@@ -56,7 +57,7 @@ function PresetCard({ preset, isFavorite, onApply, onToggleFavorite, onDelete, i
         <div
           className="h-16 w-full"
           style={{
-            background: `linear-gradient(135deg, ${preset.tokens.theme.palette.accent}40, ${preset.tokens.theme.palette.bg})`
+            background: `linear-gradient(135deg, ${withOpacity(preset.tokens.theme.palette.accent, 0x40 / 255)}, ${preset.tokens.theme.palette.bg})`
           }}
         />
         <div className="p-3">
@@ -276,3 +277,4 @@ export function PresetPanel() {
     </div>
   );
 }
+

@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useVibeStore } from '@/lib/store/vibeStore';
+import { withOpacity } from '@/lib/generator/color';
 import { cn } from '@/lib/utils';
 
 interface ButtonPreviewProps {
@@ -10,8 +11,8 @@ interface ButtonPreviewProps {
 }
 
 export function ButtonPreview({ styles }: ButtonPreviewProps) {
-  const version = useVibeStore(state => state.ui.version);
-  const tokens = useVibeStore(state => state.tokens);
+  const version = useVibeStore((state) => state.ui.version);
+  const tokens = useVibeStore((state) => state.tokens);
   const [isHovered, setIsHovered] = useState(false);
   const [isActive, setIsActive] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -27,11 +28,11 @@ export function ButtonPreview({ styles }: ButtonPreviewProps) {
         };
       case 'outline':
         return {
-          backgroundColor: `${tokens.theme.palette.accent}15`
+          backgroundColor: withOpacity(tokens.theme.palette.accent, 0x15 / 255)
         };
       case 'ghost':
         return {
-          backgroundColor: `${tokens.theme.palette.accent}10`
+          backgroundColor: withOpacity(tokens.theme.palette.accent, 0x10 / 255)
         };
       default:
         return {};
@@ -47,7 +48,7 @@ export function ButtonPreview({ styles }: ButtonPreviewProps) {
       case 'outline':
       case 'ghost':
         return {
-          backgroundColor: `${tokens.theme.palette.accent}25`
+          backgroundColor: withOpacity(tokens.theme.palette.accent, 0x25 / 255)
         };
       default:
         return {};

@@ -461,7 +461,7 @@ ${effects.glow.enabled ? `
   content: '';
   position: absolute;
   inset: -8px;
-  background: radial-gradient(circle, ${theme.palette.accent}40 0%, transparent 70%);
+  background: radial-gradient(circle, ${withOpacity(theme.palette.accent, 0x40 / 255)} 0%, transparent 70%);
   border-radius: ${button.radius + 8}px;
   z-index: -1;
   opacity: 0.5;
@@ -520,7 +520,7 @@ ${effects.glow.enabled ? `
   content: '';
   position: absolute;
   inset: -8px;
-  background: radial-gradient(circle, ${theme.palette.accent}40 0%, transparent 70%);
+  background: radial-gradient(circle, ${withOpacity(theme.palette.accent, 0x40 / 255)} 0%, transparent 70%);
   border-radius: ${styles.glowBorderRadius}px;
   z-index: -1;
   opacity: 0.5;
@@ -602,10 +602,10 @@ export function generateCSSVariables(tokens: VibeTokens): ExportResult {
   const code = `:root {
   /* Theme Colors */
   --v-accent: ${theme.palette.accent};
-  --v-accent-rgb: ${rgb?.r || 99}, ${rgb?.g || 102}, ${rgb?.b || 241};
+  --v-accent-rgb: ${rgb?.r ?? 99}, ${rgb?.g ?? 102}, ${rgb?.b ?? 241};
   --v-background: ${theme.palette.bg};
   --v-surface: ${theme.palette.surface};
-  --v-surface-rgb: ${cardRgb?.r || 30}, ${cardRgb?.g || 41}, ${cardRgb?.b || 59};
+  --v-surface-rgb: ${cardRgb?.r ?? 30}, ${cardRgb?.g ?? 41}, ${cardRgb?.b ?? 59};
   --v-text: ${theme.palette.text};
   --v-muted-text: ${theme.palette.mutedText};
   --v-border: ${theme.palette.border};
@@ -716,3 +716,5 @@ export function generateAllExports(tokens: VibeTokens, componentType: 'button' |
     json: generateJSONTokens(tokens)
   };
 }
+
+

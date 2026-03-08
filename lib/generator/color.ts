@@ -1,25 +1,57 @@
-import { wcagContrast } from 'culori';
+import { formatHex, parse, wcagContrast } from 'culori';
 
-export function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  return result
-    ? {
-        r: parseInt(result[1], 16),
-        g: parseInt(result[2], 16),
-        b: parseInt(result[3], 16)
-      }
-    : null;
+const SIX_DIGIT_HEX_REGEX = /^#[0-9a-f]{6}$/;
+
+export function isSixDigitHexColor(value: string): boolean {
+  return SIX_DIGIT_HEX_REGEX.test(value);
+}
+
+export function normalizeToSixDigitHex(color: string): string | null {
+  if (typeof color !== 'string') {
+    return null;
+  }
+
+  const parsed = parse(color.trim());
+  if (!parsed) {
+    return null;
+  }
+
+  const alpha = typeof parsed.alpha === 'number' ? parsed.alpha : 1;
+  if (alpha < 1) {
+    return null;
+  }
+
+  const hex = formatHex(parsed);
+  if (!hex) {
+    return null;
+  }
+
+  const normalized = hex.toLowerCase();
+  return isSixDigitHexColor(normalized) ? normalized : null;
+}
+
+export function hexToRgb(color: string): { r: number; g: number; b: number } | null {
+  const normalized = normalizeToSixDigitHex(color);
+  if (!normalized) {
+    return null;
+  }
+
+  return {
+    r: parseInt(normalized.slice(1, 3), 16),
+    g: parseInt(normalized.slice(3, 5), 16),
+    b: parseInt(normalized.slice(5, 7), 16)
+  };
 }
 
 export function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map(x => {
-    const hex = Math.round(x).toString(16);
+  return '#' + [r, g, b].map((value) => {
+    const hex = Math.round(value).toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   }).join('');
 }
 
-export function hexToHsla(hex: string): { h: number; s: number; l: number; a: number } {
-  const rgb = hexToRgb(hex);
+export function hexToHsla(color: string): { h: number; s: number; l: number; a: number } {
+  const rgb = hexToRgb(color);
   if (!rgb) return { h: 0, s: 0, l: 0, a: 1 };
 
   const r = rgb.r / 255;
@@ -51,7 +83,7 @@ export function hexToHsla(hex: string): { h: number; s: number; l: number; a: nu
   return { h: h * 360, s: s * 100, l: l * 100, a: 1 };
 }
 
-export function hslaToHex(h: number, s: number, l: number, a: number = 1): string {
+export function hslaToHex(h: number, s: number, l: number, _a: number = 1): string {
   s /= 100;
   l /= 100;
   const c = (1 - Math.abs(2 * l - 1)) * s;
@@ -75,30 +107,29 @@ export function hslaToHex(h: number, s: number, l: number, a: number = 1): strin
     r = c; g = 0; b = x;
   }
 
-  const toHex = (n: number) => {
-    const hex = Math.round((n + m) * 255).toString(16);
+  const toHex = (value: number) => {
+    const hex = Math.round((value + m) * 255).toString(16);
     return hex.length === 1 ? '0' + hex : hex;
   };
 
-  const alphaHex = a < 1 ? toHex(a * 255) : '';
-  return `#${toHex(r)}${toHex(g)}${toHex(b)}${alphaHex}`;
+  return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
 }
 
-export function adjustLightness(hex: string, amount: number): string {
-  const hsla = hexToHsla(hex);
+export function adjustLightness(color: string, amount: number): string {
+  const hsla = hexToHsla(color);
   const newL = Math.max(0, Math.min(100, hsla.l + amount * 100));
   return hslaToHex(hsla.h, hsla.s, newL, hsla.a);
 }
 
-export function adjustSaturation(hex: string, amount: number): string {
-  const hsla = hexToHsla(hex);
+export function adjustSaturation(color: string, amount: number): string {
+  const hsla = hexToHsla(color);
   const newS = Math.max(0, Math.min(100, hsla.s + amount * 100));
   return hslaToHex(hsla.h, newS, hsla.l, hsla.a);
 }
 
-export function withOpacity(hex: string, opacity: number): string {
-  const rgb = hexToRgb(hex);
-  if (!rgb) return hex;
+export function withOpacity(color: string, opacity: number): string {
+  const rgb = hexToRgb(color);
+  if (!rgb) return color;
   return `rgba(${rgb.r}, ${rgb.g}, ${rgb.b}, ${opacity})`;
 }
 
@@ -126,7 +157,7 @@ export function generateGradientStops(
   stops: Array<{ color: string; pos: number }>
 ): string {
   const sorted = [...stops].sort((a, b) => a.pos - b.pos);
-  const gradientStops = sorted.map(s => `${s.color} ${s.pos}%`).join(', ');
+  const gradientStops = sorted.map((stop) => `${stop.color} ${stop.pos}%`).join(', ');
   return `linear-gradient(${angle}deg, ${gradientStops})`;
 }
 
