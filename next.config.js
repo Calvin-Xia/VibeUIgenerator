@@ -7,10 +7,7 @@ const nextConfig = {
     unoptimized: true,
   },
   serverExternalPackages: ['shiki'],
-  outputFileTracingRoot: path.resolve(__dirname),
-  turbopack: {
-    resolveAlias: {},
-  },
+  outputFileTracingRoot: path.resolve(__dirname)
 };
 
 module.exports = nextConfig;

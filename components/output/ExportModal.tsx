@@ -105,7 +105,7 @@ export function ExportModal({ isOpen, onClose, defaultComponent = 'button' }: Ex
         title: 'Copied!',
         description: `${formatInfo[format].label} code copied to clipboard`
       });
-    } catch (err) {
+    } catch {
       toast({
         title: 'Failed to copy',
         variant: 'destructive'
@@ -152,7 +152,7 @@ export function ExportModal({ isOpen, onClose, defaultComponent = 'button' }: Ex
         title: 'All files downloaded!',
         description: '6 export files have been downloaded'
       });
-    } catch (err) {
+    } catch {
       toast({
         title: 'Download failed',
         variant: 'destructive'

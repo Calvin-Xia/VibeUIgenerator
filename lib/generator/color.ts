@@ -83,7 +83,7 @@ export function hexToHsla(color: string): { h: number; s: number; l: number; a: 
   return { h: h * 360, s: s * 100, l: l * 100, a: 1 };
 }
 
-export function hslaToHex(h: number, s: number, l: number, _a: number = 1): string {
+export function hslaToHex(h: number, s: number, l: number): string {
   s /= 100;
   l /= 100;
   const c = (1 - Math.abs(2 * l - 1)) * s;
@@ -118,13 +118,13 @@ export function hslaToHex(h: number, s: number, l: number, _a: number = 1): stri
 export function adjustLightness(color: string, amount: number): string {
   const hsla = hexToHsla(color);
   const newL = Math.max(0, Math.min(100, hsla.l + amount * 100));
-  return hslaToHex(hsla.h, hsla.s, newL, hsla.a);
+  return hslaToHex(hsla.h, hsla.s, newL);
 }
 
 export function adjustSaturation(color: string, amount: number): string {
   const hsla = hexToHsla(color);
   const newS = Math.max(0, Math.min(100, hsla.s + amount * 100));
-  return hslaToHex(hsla.h, newS, hsla.l, hsla.a);
+  return hslaToHex(hsla.h, newS, hsla.l);
 }
 
 export function withOpacity(color: string, opacity: number): string {

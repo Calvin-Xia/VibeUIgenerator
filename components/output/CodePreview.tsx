@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@/lib/utils';
 import { Check, Copy, Download } from 'lucide-react';
 import { EnhancedCode } from './EnhancedCode';
@@ -15,7 +15,6 @@ interface CodePreviewProps {
 export function CodePreview({ code, language, filename, className }: CodePreviewProps) {
   const [copied, setCopied] = useState(false);
   const [downloading, setDownloading] = useState(false);
-  const codeRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
     if (copied) {

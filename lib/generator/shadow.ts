@@ -1,4 +1,4 @@
-import { hexToRgb, rgbToHex, withOpacity } from './color';
+import { hexToRgb, withOpacity } from './color';
 
 export interface ShadowParams {
   elevation: number;

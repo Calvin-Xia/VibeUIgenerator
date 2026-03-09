@@ -21,7 +21,6 @@ type StoreSnapshot = {
   tokens: VibeTokens;
   ui: {
     selectedComponent: 'button' | 'card';
-    selectedState: 'default' | 'hover' | 'active' | 'focus';
     showBackground: boolean;
     showNoise: boolean;
     showGrid: boolean;
@@ -41,7 +40,6 @@ function createTestHarness(initialTokens?: VibeTokens) {
     tokens: cloneTokens(initialTokens ?? storeModule.DEFAULT_TOKENS),
     ui: {
       selectedComponent: 'button',
-      selectedState: 'default',
       showBackground: true,
       showNoise: false,
       showGrid: false,

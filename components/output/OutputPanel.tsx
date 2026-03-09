@@ -13,18 +13,9 @@ import {
 import { CodeBlock } from './CodeBlock';
 import { CodeTabs } from './CodeTabs';
 import { ExportButtons } from './ExportButtons';
-import { cn } from '@/lib/utils';
 
 type OutputTab = 'css' | 'tailwind' | 'html' | 'react' | 'vue' | 'json';
 
-const tabLabels: Record<OutputTab, string> = {
-  css: 'CSS',
-  tailwind: 'Tailwind',
-  html: 'HTML',
-  react: 'React',
-  vue: 'Vue',
-  json: 'JSON'
-};
 
 export function OutputPanel() {
   const tokens = useVibeStore(state => state.tokens);

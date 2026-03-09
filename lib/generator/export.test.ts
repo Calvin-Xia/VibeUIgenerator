@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 
-import { generateVibeStyles } from '@/lib/generator';
 import { withOpacity } from '@/lib/generator/color';
 import {
   generateCSSVariables,
@@ -188,14 +187,13 @@ describe('export interaction parity', () => {
     expect(code).not.toContain('.vibe-card:disabled');
   });
 
-  it('returns a distinct card HTML snippet from generateVibeStyles', () => {
+  it('returns distinct HTML snippets for button and card exports', () => {
     const buttonHtml = generateHTMLSnippets(tokens, 'button').code;
     const cardHtml = generateHTMLSnippets(tokens, 'card').code;
-    const styles = generateVibeStyles(tokens);
 
-    expect(styles.htmlSnippet.button).toBe(buttonHtml);
-    expect(styles.htmlSnippet.card).toBe(cardHtml);
-    expect(styles.htmlSnippet.card).not.toBe(styles.htmlSnippet.button);
+    expect(buttonHtml).not.toBe(cardHtml);
+    expect(buttonHtml).toContain('class="vibe-button');
+    expect(cardHtml).toContain('class="vibe-card');
   });
 
   it('keeps the React button API while using token-driven translateY interactions', () => {

@@ -1,36 +1,26 @@
 'use client';
 
-import { useRef, useState, useEffect, useMemo } from 'react';
+import { useRef, useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVibeStore, createActions } from '@/lib/store/vibeStore';
+import { useVibeStore } from '@/lib/store/vibeStore';
 import { getButtonStyles, getCardStyles, getCanvasStyles } from '@/lib/generator';
 import { CanvasBackground } from './CanvasBackground';
 import { ButtonPreview } from './ButtonPreview';
 import { CardPreview } from './CardPreview';
 import { PreviewSwitch } from './PreviewSwitch';
 import { toPng } from 'html-to-image';
-import { Download, MousePointer2, Layout, Box } from 'lucide-react';
+import { Download } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
 
 export function PreviewCanvas() {
-  const tokens = useVibeStore(state => state.tokens);
-  const ui = useVibeStore(state => state.ui);
-  const selectedComponent = useVibeStore(state => state.ui.selectedComponent);
-  const version = useVibeStore(state => state.ui.version);
-  
-  const actions = useMemo(() => 
-    createActions(
-      (fn) => useVibeStore.setState(fn),
-      () => useVibeStore.getState()
-    ),
-  []);
-  
+  const tokens = useVibeStore((state) => state.tokens);
+  const selectedComponent = useVibeStore((state) => state.ui.selectedComponent);
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isExporting, setIsExporting] = useState(false);
 
-  const canvasStyles = useMemo(() => getCanvasStyles(tokens), [tokens, version]);
-  const buttonStyles = useMemo(() => getButtonStyles(tokens), [tokens, version]);
-  const cardStyles = useMemo(() => getCardStyles(tokens), [tokens, version]);
+  const canvasStyles = useMemo(() => getCanvasStyles(tokens), [tokens]);
+  const buttonStyles = useMemo(() => getButtonStyles(tokens), [tokens]);
+  const cardStyles = useMemo(() => getCardStyles(tokens), [tokens]);
 
   const handleExportPNG = async () => {
     if (!canvasRef.current) return;
@@ -49,7 +39,7 @@ export function PreviewCanvas() {
       link.click();
 
       toast({ title: 'PNG exported!', description: 'Image downloaded successfully' });
-    } catch (error) {
+    } catch {
       toast({ title: 'Export failed', variant: 'destructive' });
     } finally {
       setIsExporting(false);
@@ -76,7 +66,7 @@ export function PreviewCanvas() {
         <motion.div
           ref={canvasRef}
           style={canvasStyles}
-          className="relative mx-auto w-full max-w-2xl min-h-[400px] flex items-center justify-center rounded-2xl border shadow-inner"
+          className="relative mx-auto flex min-h-[400px] w-full max-w-2xl items-center justify-center rounded-2xl border shadow-inner"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.3 }}

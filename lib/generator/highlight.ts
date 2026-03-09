@@ -68,9 +68,3 @@ export function escapeHtml(text: string): string {
     .replace(/'/g, '&#039;')}</code></pre>`;
 }
 
-export function setSyntaxTheme(isDarkMode: boolean) {
-}
-
-export async function getSupportedLanguages(): Promise<string[]> {
-  return ['typescript', 'vue', 'html', 'css', 'javascript', 'json'];
-}

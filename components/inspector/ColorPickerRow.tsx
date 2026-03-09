@@ -13,7 +13,6 @@ interface ColorPickerRowProps {
 
 export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) {
   const [showPicker, setShowPicker] = useState(false);
-  const [position, setPosition] = useState<'left' | 'right' | 'center'>('center');
   const [coords, setCoords] = useState({ top: 0, left: 0 });
   const pickerRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
@@ -28,7 +27,6 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
     const viewportHeight = window.innerHeight;
     const padding = 10;
 
-    let horizontalPos: 'left' | 'right' | 'center';
     let topPos = triggerRect.bottom + padding;
     let leftPos = triggerRect.left;
 
@@ -37,13 +35,8 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
     const spaceBelow = viewportHeight - triggerRect.bottom;
 
     if (spaceOnRight >= pickerWidth) {
-      horizontalPos = 'right';
       leftPos = triggerRect.right - pickerWidth;
-    } else if (spaceOnLeft >= pickerWidth) {
-      horizontalPos = 'left';
-      leftPos = triggerRect.left;
-    } else {
-      horizontalPos = 'center';
+    } else if (spaceOnLeft < pickerWidth) {
       leftPos = (viewportWidth - pickerWidth) / 2;
     }
 
@@ -56,7 +49,6 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
       leftPos = viewportWidth - pickerWidth - padding;
     }
 
-    setPosition(horizontalPos);
     setCoords({ top: topPos, left: leftPos });
   }, []);
 
@@ -77,11 +69,12 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
   }, [showPicker]);
 
   useEffect(() => {
-    if (showPicker) {
-      calculatePosition();
-      window.addEventListener('resize', calculatePosition);
-      window.addEventListener('scroll', calculatePosition, true);
+    if (!showPicker) {
+      return undefined;
     }
+
+    window.addEventListener('resize', calculatePosition);
+    window.addEventListener('scroll', calculatePosition, true);
 
     return () => {
       window.removeEventListener('resize', calculatePosition);
@@ -107,6 +100,14 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
     setShowPicker(false);
   };
 
+  const togglePicker = () => {
+    if (!showPicker) {
+      calculatePosition();
+    }
+
+    setShowPicker((current) => !current);
+  };
+
   const pickerContent = showPicker ? (
     <motion.div
       ref={pickerRef}
@@ -115,7 +116,7 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
       className="fixed z-[9999] min-w-[220px] rounded-lg border bg-card p-3 shadow-xl"
       style={{
         top: coords.top,
-        left: coords.left,
+        left: coords.left
       }}
     >
       <div className="mb-3">
@@ -128,7 +129,7 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
         />
       </div>
       <div className="grid grid-cols-5 gap-2">
-        {presetColors.map(color => (
+        {presetColors.map((color) => (
           <button
             key={color}
             type="button"
@@ -152,7 +153,7 @@ export function ColorPickerRow({ label, value, onChange }: ColorPickerRowProps) 
           <button
             ref={triggerRef}
             type="button"
-            onClick={() => setShowPicker(!showPicker)}
+            onClick={togglePicker}
             className="h-8 w-8 rounded border-2 cursor-pointer"
             style={{ backgroundColor: value, borderColor: value === '#ffffff' ? '#e2e8f0' : value }}
           />

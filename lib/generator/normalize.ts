@@ -251,9 +251,6 @@ export function validateTokens(tokens: unknown): tokens is VibeTokens {
   return true;
 }
 
-export function exportToJSON(tokens: VibeTokens, pretty: boolean = true): string {
-  return JSON.stringify(tokens, null, pretty ? 2 : 0);
-}
 
 export function importFromJSON(json: string): VibeTokens | null {
   try {
@@ -264,14 +261,8 @@ export function importFromJSON(json: string): VibeTokens | null {
   }
 }
 
-export function generateShareableURL(tokens: VibeTokens, baseUrl?: string): string {
-  const encoded = encodeToURL(tokens);
-  const url = new URL(baseUrl ?? (typeof window !== 'undefined' ? window.location.origin : ''));
-  url.searchParams.set('s', encoded);
-  return url.toString();
-}
 
-export function getRecentSchemes(): VibeTokens[] {
+function getRecentSchemes(): VibeTokens[] {
   if (typeof window === 'undefined') return [];
 
   try {
@@ -311,37 +302,4 @@ export function addRecentScheme(tokens: VibeTokens): void {
   }
 }
 
-export function getSavedPresets(): VibeTokens[] {
-  if (typeof window === 'undefined') return [];
-
-  try {
-    const stored = localStorage.getItem('vibeui:savedPresets');
-    if (!stored) return [];
-
-    const presets = JSON.parse(stored) as unknown[];
-    return presets
-      .map((preset) => tryNormalizeTokens(preset))
-      .filter((preset): preset is VibeTokens => preset !== null);
-  } catch {
-    return [];
-  }
-}
-
-export function savePreset(tokens: VibeTokens, name: string): void {
-  if (typeof window === 'undefined') return;
-
-  try {
-    const normalized = tryNormalizeTokens(tokens);
-    if (!normalized) {
-      return;
-    }
-
-    const saved = getSavedPresets();
-    const newPreset = { ...normalized, _presetName: name, _createdAt: Date.now() };
-    const updated = [newPreset, ...saved];
-    localStorage.setItem('vibeui:savedPresets', JSON.stringify(updated));
-  } catch (error) {
-    console.error('Failed to save preset:', error);
-  }
-}
 

@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useEffect, useState, useCallback } from 'react';
+import { useRef, useEffect, useCallback } from 'react';
 import { cn } from '@/lib/utils';
 import { SyntaxHighlighter } from './SyntaxHighlighter';
 
@@ -22,29 +22,11 @@ export function EnhancedCode({
   showLineNumbers = true,
   maxHeight = '300px'
 }: EnhancedCodeProps) {
-  const containerRef = useRef<HTMLDivElement>(null);
   const codeScrollRef = useRef<HTMLDivElement>(null);
   const lineNumbersRef = useRef<HTMLDivElement>(null);
-  const [lineCount, setLineCount] = useState(1);
-  const [containerHeight, setContainerHeight] = useState<number | null>(null);
 
   const lines = code.split('\n');
-  const lineCountArray = Array.from({ length: lineCount }, (_, i) => i + 1);
-
-  useEffect(() => {
-    setLineCount(lines.length);
-  }, [code]);
-
-  useEffect(() => {
-    const updateHeight = () => {
-      if (containerRef.current) {
-        setContainerHeight(containerRef.current.offsetHeight);
-      }
-    };
-    updateHeight();
-    window.addEventListener('resize', updateHeight);
-    return () => window.removeEventListener('resize', updateHeight);
-  }, []);
+  const lineCountArray = Array.from({ length: lines.length }, (_, i) => i + 1);
 
   const handleScroll = useCallback(() => {
     if (codeScrollRef.current && lineNumbersRef.current) {
@@ -52,16 +34,19 @@ export function EnhancedCode({
     }
   }, []);
 
+  useEffect(() => {
+    handleScroll();
+  }, [handleScroll, code]);
+
   return (
     <div
-      ref={containerRef}
-      className={cn('flex rounded-lg border bg-muted/30 overflow-hidden', className)}
+      className={cn('flex overflow-hidden rounded-lg border bg-muted/30', className)}
       style={{ maxHeight }}
     >
       {showLineNumbers && (
         <div
           ref={lineNumbersRef}
-          className="flex flex-col border-r bg-muted/50 text-right select-none overflow-hidden"
+          className="flex flex-col overflow-hidden border-r bg-muted/50 text-right select-none"
           style={{
             minWidth: '3.5rem',
             paddingTop: PADDING,
@@ -72,7 +57,7 @@ export function EnhancedCode({
           {lineCountArray.map((num) => (
             <div
               key={num}
-              className="leading-[24px] text-xs text-muted-foreground font-mono tabular-nums pr-3"
+              className="pr-3 font-mono text-xs leading-[24px] text-muted-foreground tabular-nums"
               style={{ height: LINE_HEIGHT }}
             >
               {num}
@@ -83,7 +68,7 @@ export function EnhancedCode({
       <div
         ref={codeScrollRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto overflow-x-auto scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent"
+        className="scrollbar-thin scrollbar-thumb-muted-foreground/30 scrollbar-track-transparent flex-1 overflow-x-auto overflow-y-auto"
         style={{
           paddingTop: PADDING,
           paddingBottom: PADDING,

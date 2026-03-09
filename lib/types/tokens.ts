@@ -112,18 +112,7 @@ export interface Preset {
   createdAt?: number;
 }
 
-export interface GeneratedStyles {
-  cssVars: Record<string, string>;
-  cssText: string;
-  tailwindLayer: string;
-  htmlSnippet: {
-    button: string;
-    card: string;
-  };
-}
-
 export type ComponentType = 'button' | 'card';
-export type ComponentState = 'default' | 'hover' | 'active' | 'focus';
 
 export interface CodeTab {
   id: 'css-vars' | 'css' | 'tailwind' | 'html' | 'json';

@@ -4,7 +4,7 @@ import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVibeStore, createActions } from '@/lib/store/vibeStore';
 import { toast } from '@/components/ui/use-toast';
-import { Save, Heart, Trash2, Plus } from 'lucide-react';
+import { Heart, Trash2, Plus } from 'lucide-react';
 import {
   Dialog,
   DialogContent,

@@ -1,7 +1,6 @@
 'use client';
 
 import { AlertCircle, CheckCircle, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface ContrastInfo {
   ratio: number;

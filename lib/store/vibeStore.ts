@@ -1,8 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
-import { VibeTokens, Preset, ComponentType, ComponentState } from '@/lib/types/tokens';
-import { generateVibeStyles } from '@/lib/generator';
-import { hslaToHex } from '@/lib/generator/color';
+import { VibeTokens, Preset, ComponentType } from '@/lib/types/tokens';
+import { hslaToHex, getContrastRating } from '@/lib/generator/color';
 import {
   encodeToURL,
   importFromJSON,
@@ -109,7 +108,6 @@ const DEFAULT_TOKENS: VibeTokens = {
 
 interface UIState {
   selectedComponent: ComponentType;
-  selectedState: ComponentState;
   showBackground: boolean;
   showNoise: boolean;
   showGrid: boolean;
@@ -257,7 +255,6 @@ export const useVibeStore = create<StoreState>()(
       tokens: cloneValue(DEFAULT_TOKENS),
       ui: {
         selectedComponent: 'button',
-        selectedState: 'default',
         showBackground: true,
         showNoise: false,
         showGrid: false,
@@ -468,12 +465,6 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
     }));
   },
 
-  setSelectedState: (state: ComponentState) => {
-    set((currentState) => ({
-      ui: { ...currentState.ui, selectedState: state }
-    }));
-  },
-
   toggleBackground: () => {
     set((state) => ({
       ui: { ...state.ui, showBackground: !state.ui.showBackground }
@@ -493,14 +484,9 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
   }
 });
 
-export function useGeneratedStyles() {
-  const tokens = useVibeStore((state) => state.tokens);
-  return generateVibeStyles(tokens);
-}
 
 export function useContrastRatio() {
   const tokens = useVibeStore((state) => state.tokens);
-  const { getContrastRating } = require('@/lib/generator/color');
   return getContrastRating(tokens.theme.palette.text, tokens.theme.palette.bg);
 }
 

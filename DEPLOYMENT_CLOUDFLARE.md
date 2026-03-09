@@ -111,18 +111,21 @@ mkdir -p functions
 创建 `functions/[[path]].ts` 文件：
 
 ```typescript
-import { createPagesFunctionHandler } from '@cloudflare/next-on-pages/next-dev';
+export interface PagesFunctionContext {
+  next: () => Response | Promise<Response>;
+}
 
-export const onRequest = createPagesFunctionHandler({
-  // 可选配置
-  // assets: {
-  //   bucketDirectory: './public',
-  //   cacheControl: 'public, max-age=3600',
-  // },
-});
+export const onRequest = (context: PagesFunctionContext) => {
+  return context.next();
+};
 ```
 
-此文件负责处理所有 Next.js 页面的 Cloudflare Pages 路由。
+此文件负责保留 Cloudflare Pages 的 catch-all 入口，并将请求继续交给 Pages 的后续处理。该入口现在默认纳入根目录 `eslint.config.mjs` 和 `npm run typecheck` 的检查范围，修改后建议先执行：
+
+```bash
+npm run lint
+npm run typecheck
+```
 
 ### 第四步：更新 Next.js 配置
 

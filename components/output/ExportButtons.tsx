@@ -2,12 +2,11 @@
 
 import { useState } from 'react';
 import { useVibeStore } from '@/lib/store/vibeStore';
-import { generateCSSVariables, generateHTMLSnippets, generateReactComponent, generateVueComponent, generateTailwindConfig, generateJSONTokens, generateAllExports } from '@/lib/generator/export';
+import { generateCSSVariables, generateHTMLSnippets, generateReactComponent, generateVueComponent, generateTailwindConfig, generateJSONTokens } from '@/lib/generator/export';
 import { ExportModal } from './ExportModal';
 import { cn } from '@/lib/utils';
 import { Code2, Copy, Download } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import type { ExportFormat } from '@/lib/generator/export';
 
 interface ExportButtonsProps {
   activeTab?: string;

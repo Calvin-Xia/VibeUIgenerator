@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVibeStore, createActions } from '@/lib/store/vibeStore';
@@ -12,8 +12,6 @@ import {
   Sun,
   Moon,
   Share2,
-  Download,
-  Shuffle,
   Save,
   Palette,
   ChevronDown,
@@ -26,7 +24,6 @@ import {
 export function TopBar() {
   const tokens = useVibeStore(state => state.tokens);
   const presets = useVibeStore(state => state.presets);
-  const version = useVibeStore(state => state.ui.version);
   
   const actions = useMemo(() => 
     createActions(

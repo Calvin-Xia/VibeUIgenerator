@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import { Copy, Check } from 'lucide-react';
 import { toast } from '@/components/ui/use-toast';
-import { cn } from '@/lib/utils';
 import { EnhancedCode } from './EnhancedCode';
 
 interface CodeBlockProps {

@@ -1,6 +1,5 @@
 'use client';
 
-import { useVibeStore } from '@/lib/store/vibeStore';
 import { cn } from '@/lib/utils';
 
 interface CodeTabsProps {

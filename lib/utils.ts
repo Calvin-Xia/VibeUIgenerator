@@ -1,15 +1,13 @@
 import { type ClassValue, clsx } from 'clsx';
+import { useSyncExternalStore } from 'react';
 import { twMerge } from 'tailwind-merge';
-import { useState, useEffect } from 'react';
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+const subscribe = () => () => {};
+
 export function useHydrated() {
-  const [hydrated, setHydrated] = useState(false);
-  useEffect(() => {
-    setHydrated(true);
-  }, []);
-  return hydrated;
+  return useSyncExternalStore(subscribe, () => true, () => false);
 }

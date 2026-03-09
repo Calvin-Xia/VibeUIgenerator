@@ -1,4 +1,4 @@
-import { VibeTokens, Preset } from '@/lib/types/tokens';
+import { Preset } from '@/lib/types/tokens';
 
 export const builtInPresets: Preset[] = [
   {

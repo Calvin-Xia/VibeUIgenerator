@@ -1,6 +1,6 @@
 'use client';
 
-import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose, ToastAction } from '@/components/ui/toast';
+import { ToastProvider, ToastViewport, Toast, ToastTitle, ToastDescription, ToastClose } from '@/components/ui/toast';
 import { useToast } from '@/components/ui/use-toast';
 
 function Toaster() {

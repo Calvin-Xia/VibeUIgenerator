@@ -1,6 +1,6 @@
-import { VibeTokens, GeneratedStyles } from '@/lib/types/tokens';
-import { hexToRgb, withOpacity, adjustLightness, generateGradientStops } from './color';
-import { shadowFromElevation, generateGlowShadow } from './shadow';
+import { VibeTokens } from '@/lib/types/tokens';
+import { withOpacity, generateGradientStops } from './color';
+import { shadowFromElevation } from './shadow';
 import {
   generateCSSVariables,
   generateTailwindConfig,
@@ -21,31 +21,6 @@ export {
   generateAllExports
 };
 
-function parseCSSVariables(code: string): Record<string, string> {
-  const entries = Array.from(code.matchAll(/--([\w-]+):\s*([^;]+);/g)).map(([_, name, value]) => [
-    name,
-    value.trim()
-  ]);
-
-  return Object.fromEntries(entries);
-}
-
-export function generateVibeStyles(tokens: VibeTokens): GeneratedStyles {
-  const cssVars = generateCSSVariables(tokens);
-  const tailwindLayer = generateTailwindConfig(tokens);
-  const buttonHtmlSnippet = generateHTMLSnippets(tokens, 'button');
-  const cardHtmlSnippet = generateHTMLSnippets(tokens, 'card');
-
-  return {
-    cssVars: parseCSSVariables(cssVars.code),
-    cssText: '',
-    tailwindLayer: tailwindLayer.code,
-    htmlSnippet: {
-      button: buttonHtmlSnippet.code,
-      card: cardHtmlSnippet.code
-    }
-  };
-}
 
 export function getButtonStyles(tokens: VibeTokens): React.CSSProperties {
   const { theme, effects, interaction, button } = tokens;
@@ -54,7 +29,6 @@ export function getButtonStyles(tokens: VibeTokens): React.CSSProperties {
   let buttonBg: string;
   let buttonText: string;
   let buttonBorder: string;
-  const borderColor = withOpacity(theme.palette.border, effects.border.opacity);
 
   switch (buttonVariant) {
     case 'solid':

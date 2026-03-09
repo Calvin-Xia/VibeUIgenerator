@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef, useMemo } from 'react';
+import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVibeStore, createActions } from '@/lib/store/vibeStore';
 import { InspectorPanel } from '@/components/inspector/InspectorPanel';
@@ -8,11 +8,10 @@ import { PreviewCanvas } from '@/components/preview/PreviewCanvas';
 import { OutputPanel } from '@/components/output/OutputPanel';
 import { PresetPanel } from '@/components/presets/PresetPanel';
 import { useHydrated } from '@/lib/utils';
-import { Settings2, Eye, Code2, LayoutGrid } from 'lucide-react';
+import { Settings2, Eye, Code2 } from 'lucide-react';
 
 export function MainLayout() {
   const ui = useVibeStore(state => state.ui);
-  const tokens = useVibeStore(state => state.tokens);
   const initialized = useVibeStore(state => state.ui.initialized);
   const hydrated = useHydrated();
   
