@@ -1,7 +1,8 @@
 'use client';
 
-import { useMemo, useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { highlightCode } from '@/lib/generator/highlight';
+import { useVibeStore } from '@/lib/store/vibeStore';
 import { cn } from '@/lib/utils';
 
 interface SyntaxHighlighterProps {
@@ -12,27 +13,20 @@ interface SyntaxHighlighterProps {
 
 export function SyntaxHighlighter({ code, language, className }: SyntaxHighlighterProps) {
   const [highlightedCode, setHighlightedCode] = useState<string>('');
-  const [isDarkMode, setIsDarkMode] = useState(true);
-
-  useEffect(() => {
-    const updateTheme = () => {
-      const isDark = document.documentElement.classList.contains('dark') ||
-        window.matchMedia('(prefers-color-scheme: dark)').matches;
-      setIsDarkMode(isDark);
-    };
-    updateTheme();
-    window.addEventListener('themechange', updateTheme);
-    return () => window.removeEventListener('themechange', updateTheme);
-  }, []);
+  const isDarkMode = useVibeStore((state) => state.tokens.theme.mode === 'dark');
 
   useEffect(() => {
     let mounted = true;
+
     highlightCode(code, language, isDarkMode).then((html) => {
       if (mounted) {
         setHighlightedCode(html);
       }
     });
-    return () => { mounted = false; };
+
+    return () => {
+      mounted = false;
+    };
   }, [code, language, isDarkMode]);
 
   if (!highlightedCode) {
