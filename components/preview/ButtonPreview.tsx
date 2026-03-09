@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useVibeStore } from '@/lib/store/vibeStore';
 import { withOpacity } from '@/lib/generator/color';
+import { resolveInteractionMotion } from '@/lib/generator/interaction';
 import { cn } from '@/lib/utils';
 
 interface ButtonPreviewProps {
@@ -19,6 +20,10 @@ export function ButtonPreview({ styles }: ButtonPreviewProps) {
 
   const variant = tokens.button.variant;
   const effects = tokens.effects;
+  const interactionMotion = resolveInteractionMotion(tokens.interaction);
+  const transition = {
+    duration: tokens.interaction.transition.duration / 1000
+  };
 
   const getHoverStyles = () => {
     switch (variant) {
@@ -70,13 +75,21 @@ export function ButtonPreview({ styles }: ButtonPreviewProps) {
             isFocused && 'ring-2 ring-offset-2'
           )}
           onMouseEnter={() => setIsHovered(true)}
-          onMouseLeave={() => setIsHovered(false)}
+          onMouseLeave={() => {
+            setIsHovered(false);
+            setIsActive(false);
+          }}
           onMouseDown={() => setIsActive(true)}
           onMouseUp={() => setIsActive(false)}
           onFocus={() => setIsFocused(true)}
-          onBlur={() => setIsFocused(false)}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
+          onBlur={() => {
+            setIsFocused(false);
+            setIsActive(false);
+          }}
+          animate={{
+            y: isActive ? interactionMotion.activeTranslateY : isHovered ? interactionMotion.hoverTranslateY : 0
+          }}
+          transition={transition}
         >
           {isActive ? 'Pressed!' : isHovered ? 'Hovered!' : 'Click Me'}
         </motion.button>

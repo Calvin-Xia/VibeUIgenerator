@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { motion } from 'framer-motion';
+import { resolveInteractionMotion } from '@/lib/generator/interaction';
 import { useVibeStore } from '@/lib/store/vibeStore';
 import { cn } from '@/lib/utils';
 
@@ -10,30 +11,36 @@ interface CardPreviewProps {
 }
 
 export function CardPreview({ styles }: CardPreviewProps) {
-  const version = useVibeStore(state => state.ui.version);
-  const tokens = useVibeStore(state => state.tokens);
+  const version = useVibeStore((state) => state.ui.version);
+  const tokens = useVibeStore((state) => state.tokens);
   const [isHovered, setIsHovered] = useState(false);
   const effects = tokens.effects;
+  const interactionMotion = resolveInteractionMotion(tokens.interaction);
+  const transition = {
+    duration: tokens.interaction.transition.duration / 1000
+  };
+  const actionButtonMotion = {
+    whileHover: { y: interactionMotion.hoverTranslateY },
+    whileTap: { y: interactionMotion.activeTranslateY },
+    transition
+  };
 
   return (
     <motion.div
       style={styles}
-      className={cn(
-        'w-72 cursor-pointer',
-        effects.glow.enabled && 'has-glow'
-      )}
+      className={cn('w-72 cursor-pointer', effects.glow.enabled && 'has-glow')}
       key={version}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       animate={{
-        y: isHovered ? -2 : 0
+        y: isHovered ? interactionMotion.hoverTranslateY : 0
       }}
-      transition={{ duration: tokens.interaction.transition.duration / 1000 }}
+      transition={transition}
     >
       <div className="space-y-4">
         <div className="flex items-center gap-3">
           <div
-            className="h-10 w-10 rounded-full flex items-center justify-center text-white text-sm font-bold"
+            className="flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold text-white"
             style={{ backgroundColor: tokens.theme.palette.accent }}
           >
             UI
@@ -95,8 +102,7 @@ export function CardPreview({ styles }: CardPreviewProps) {
               fontWeight: tokens.theme.typography.fontWeight,
               border: 'none'
             }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            {...actionButtonMotion}
           >
             Action
           </motion.button>
@@ -110,8 +116,7 @@ export function CardPreview({ styles }: CardPreviewProps) {
               fontWeight: tokens.theme.typography.fontWeight,
               border: `1px solid ${tokens.theme.palette.border}`
             }}
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            {...actionButtonMotion}
           >
             Cancel
           </motion.button>

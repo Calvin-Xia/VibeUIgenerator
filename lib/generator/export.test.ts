@@ -123,11 +123,18 @@ const migratedTokens = normalizeTokenColors({
       ...tokens.effects.shadow,
       color: 'rgb(30, 41, 59)'
     }
+  },
+  interaction: {
+    ...tokens.interaction,
+    hover: {
+      ...tokens.interaction.hover,
+      lift: -4
+    }
   }
 });
 
-describe('card export parity', () => {
-  it('generates a wrapper-only React card export', () => {
+describe('export interaction parity', () => {
+  it('generates a wrapper-only React card export that uses hover lift tokens', () => {
     const code = generateReactComponent(tokens, 'card').code;
 
     expect(code).toContain('export interface VibeCardProps');
@@ -137,7 +144,8 @@ describe('card export parity', () => {
     expect(code).toContain(`borderRadius: ${tokens.card.radius}`);
     expect(code).toContain(`backgroundColor: '${withOpacity(tokens.theme.palette.surface, tokens.card.surfaceAlpha)}'`);
     expect(code).toContain(`border: '${tokens.effects.border.width}px solid ${withOpacity(tokens.theme.palette.border, tokens.card.borderAlpha)}'`);
-    expect(code).toContain("transform: isHovered ? 'translateY(-2px)' : 'translateY(0)'");
+    expect(code).toContain("transform: isHovered ? 'translateY(-4px)' : 'translateY(0)'");
+    expect(code).not.toContain("translateY(-2px)");
     expect(code).not.toContain('variant?:');
     expect(code).not.toContain('sizeMap');
     expect(code).not.toContain('disabled?: boolean;');
@@ -145,7 +153,7 @@ describe('card export parity', () => {
     expect(code).not.toContain('scale(0.98)');
   });
 
-  it('generates a Vue card export with a real div and no button props', () => {
+  it('generates a Vue card export that uses hover lift tokens', () => {
     const code = generateVueComponent(tokens, 'card').code;
 
     expect(code).toContain('<div');
@@ -153,7 +161,8 @@ describe('card export parity', () => {
     expect(code).toContain(`padding: '${tokens.card.padding}px'`);
     expect(code).toContain(`borderRadius: '${tokens.card.radius}px'`);
     expect(code).toContain(`backgroundColor: '${withOpacity(tokens.theme.palette.surface, tokens.card.surfaceAlpha)}'`);
-    expect(code).toContain("transform: isHovered.value ? 'translateY(-2px)' : 'translateY(0)'");
+    expect(code).toContain("transform: isHovered.value ? 'translateY(-4px)' : 'translateY(0)'");
+    expect(code).not.toContain("translateY(-2px)");
     expect(code).not.toContain('interface Props');
     expect(code).not.toContain('defineEmits');
     expect(code).not.toContain(':disabled');
@@ -161,7 +170,7 @@ describe('card export parity', () => {
     expect(code).not.toContain('disabled?: boolean;');
   });
 
-  it('generates card HTML without button dimensions or button-only interactions', () => {
+  it('generates card HTML without button dimensions or fixed hover interactions', () => {
     const code = generateHTMLSnippets(tokens, 'card').code;
 
     expect(code).toContain('.vibe-card {');
@@ -170,13 +179,13 @@ describe('card export parity', () => {
     expect(code).toContain(`border-radius: ${tokens.card.radius}px;`);
     expect(code).toContain(`background-color: ${withOpacity(tokens.theme.palette.surface, tokens.card.surfaceAlpha)};`);
     expect(code).toContain(`border: ${tokens.effects.border.width}px solid ${withOpacity(tokens.theme.palette.border, tokens.card.borderAlpha)};`);
-    expect(code).toContain('transform: translateY(-2px);');
+    expect(code).toContain('transform: translateY(-4px);');
+    expect(code).not.toContain('transform: translateY(-2px);');
     expect(code).not.toContain(`height: ${tokens.button.height}px;`);
     expect(code).not.toContain('align-items: center;');
     expect(code).not.toContain('justify-content: center;');
     expect(code).not.toContain('.vibe-card:active');
     expect(code).not.toContain('.vibe-card:disabled');
-    expect(code).not.toContain('translateY(-4px)');
   });
 
   it('returns a distinct card HTML snippet from generateVibeStyles', () => {
@@ -189,7 +198,7 @@ describe('card export parity', () => {
     expect(styles.htmlSnippet.card).not.toBe(styles.htmlSnippet.button);
   });
 
-  it('keeps button exports on the original button API', () => {
+  it('keeps the React button API while using token-driven translateY interactions', () => {
     const code = generateReactComponent(tokens, 'button').code;
 
     expect(code).toContain("variant?: 'solid' | 'outline' | 'ghost';");
@@ -197,15 +206,30 @@ describe('card export parity', () => {
     expect(code).toContain('disabled?: boolean;');
     expect(code).toContain('const sizeMap = {');
     expect(code).toContain('<button');
+    expect(code).toContain("transform: isActive ? 'translateY(2px)' : isHovered ? 'translateY(-4px)' : 'translateY(0)',");
+    expect(code).not.toContain('scale(1.02)');
+    expect(code).not.toContain('scale(0.98)');
   });
 
-  it('emits normalized accent and surface RGB CSS variables after migration', () => {
+  it('keeps the Vue button API while using token-driven translateY interactions', () => {
+    const code = generateVueComponent(tokens, 'button').code;
+
+    expect(code).toContain("variant?: 'solid' | 'outline' | 'ghost';");
+    expect(code).toContain("size?: 'sm' | 'md' | 'lg';");
+    expect(code).toContain("transform: isActive.value ? 'translateY(2px)' : isHovered.value ? 'translateY(-4px)' : 'translateY(0)',");
+    expect(code).not.toContain('scale(1.02)');
+    expect(code).not.toContain('scale(0.98)');
+  });
+
+  it('emits normalized accent, surface, and interaction CSS variables after migration', () => {
     const code = generateCSSVariables(migratedTokens).code;
 
     expect(code).toContain('--v-accent: #ff0000;');
     expect(code).toContain('--v-accent-rgb: 255, 0, 0;');
     expect(code).toContain('--v-surface: #ffffff;');
     expect(code).toContain('--v-surface-rgb: 255, 255, 255;');
+    expect(code).toContain('--v-hover-lift: 4px;');
+    expect(code).toContain('--v-active-press: 2px;');
   });
 
   it('uses rgba glow colors instead of hex suffix concatenation in HTML exports', () => {

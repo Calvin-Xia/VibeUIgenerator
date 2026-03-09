@@ -50,7 +50,7 @@ export function generateVibeStyles(tokens: VibeTokens): GeneratedStyles {
 export function getButtonStyles(tokens: VibeTokens): React.CSSProperties {
   const { theme, effects, interaction, button } = tokens;
   const buttonVariant = button.variant;
-  
+
   let buttonBg: string;
   let buttonText: string;
   let buttonBorder: string;
@@ -158,17 +158,11 @@ export function getCardStyles(tokens: VibeTokens): React.CSSProperties {
 export function getCanvasStyles(tokens: VibeTokens): React.CSSProperties {
   const { theme, effects } = tokens;
 
-  const bgStyle: React.CSSProperties = {
+  return {
     backgroundColor: theme.palette.bg,
+    backgroundImage: effects.gradient.enabled
+      ? generateGradientStops(effects.gradient.angle, effects.gradient.stops)
+      : 'none',
     transition: 'background-color 300ms ease'
   };
-
-  if (effects.gradient.enabled) {
-    bgStyle.background = generateGradientStops(
-      effects.gradient.angle,
-      effects.gradient.stops
-    );
-  }
-
-  return bgStyle;
 }

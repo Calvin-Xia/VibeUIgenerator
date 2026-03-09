@@ -100,6 +100,8 @@ export function normalizeTokenColors(tokens: VibeTokens): VibeTokens {
 
   normalized.effects.shadow.color = normalizeRequiredHexColor(normalized.effects.shadow.color, 'effects.shadow.color');
 
+  normalized.interaction.hover.lift = Math.abs(normalized.interaction.hover.lift);
+
   normalized.button.override.bg = normalizeOptionalHexColor(normalized.button.override.bg, 'button.override.bg');
   normalized.button.override.text = normalizeOptionalHexColor(normalized.button.override.text, 'button.override.text');
   normalized.button.override.border = normalizeOptionalHexColor(normalized.button.override.border, 'button.override.border');

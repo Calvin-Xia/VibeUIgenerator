@@ -128,4 +128,20 @@ describe('vibe store color normalization', () => {
     expect(getState().tokens.effects.shadow.color).toBe('#0000ff');
     expect(getState().tokens.button.override.text).toBe('#000000');
   });
+
+  it('normalizes legacy negative hover lift values during applyPreset', () => {
+    const legacyTokens = cloneTokens(storeModule.DEFAULT_TOKENS);
+    legacyTokens.interaction.hover.lift = -6;
+
+    const legacyPreset: Preset = {
+      id: 'legacy-hover-lift',
+      name: 'Legacy Hover Lift',
+      tokens: legacyTokens
+    };
+
+    const { actions, getState } = createTestHarness();
+    actions.applyPreset(legacyPreset);
+
+    expect(getState().tokens.interaction.hover.lift).toBe(6);
+  });
 });

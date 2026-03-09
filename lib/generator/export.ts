@@ -1,5 +1,6 @@
 import { VibeTokens } from '@/lib/types/tokens';
 import { hexToRgb, withOpacity } from './color';
+import { resolveInteractionMotion } from './interaction';
 import { shadowFromElevation } from './shadow';
 
 export type ExportFormat = 'react' | 'vue' | 'html' | 'tailwind' | 'css' | 'json';
@@ -23,7 +24,7 @@ interface ResolvedCardExportStyles {
   boxShadow: string;
   transition: string;
   cursor: 'pointer';
-  hoverLift: number;
+  hoverTranslateY: number;
   glowBorderRadius: number;
   backdropFilter?: string;
   webkitBackdropFilter?: string;
@@ -31,6 +32,7 @@ interface ResolvedCardExportStyles {
 
 function resolveCardExportStyles(tokens: VibeTokens): ResolvedCardExportStyles {
   const { theme, effects, interaction, card } = tokens;
+  const interactionMotion = resolveInteractionMotion(interaction);
 
   let backgroundColor = withOpacity(theme.palette.surface, card.surfaceAlpha);
   let border = `${effects.border.width}px solid ${withOpacity(theme.palette.border, card.borderAlpha)}`;
@@ -62,7 +64,7 @@ function resolveCardExportStyles(tokens: VibeTokens): ResolvedCardExportStyles {
     }),
     transition: `all ${interaction.transition.duration}ms ${interaction.transition.easing}`,
     cursor: 'pointer',
-    hoverLift: 2,
+    hoverTranslateY: interactionMotion.hoverTranslateY,
     glowBorderRadius: card.radius + 8,
     backdropFilter,
     webkitBackdropFilter
@@ -101,6 +103,7 @@ function renderCssCardBackdropLines(styles: ResolvedCardExportStyles): string {
 
 function generateReactButtonComponent(tokens: VibeTokens): ExportResult {
   const { theme, effects, interaction, button } = tokens;
+  const interactionMotion = resolveInteractionMotion(interaction);
 
   const mainShadow = shadowFromElevation({
     elevation: effects.shadow.elevation,
@@ -179,7 +182,7 @@ export function VibeButton({
     outline: 'none',
     opacity: disabled ? 0.5 : 1,
     pointerEvents: disabled ? 'none' : 'auto',
-    transform: isActive ? 'scale(0.98)' : isHovered ? 'scale(1.02)' : 'scale(1)',
+    transform: isActive ? 'translateY(${interactionMotion.activeTranslateY}px)' : isHovered ? 'translateY(${interactionMotion.hoverTranslateY}px)' : 'translateY(0)',
     boxShadow: isHovered ? '${hoverShadow}' : '${mainShadow}',
     ...buttonStyles[variant]
   };
@@ -188,7 +191,10 @@ export function VibeButton({
     <button
       style={baseStyle}
       onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
+      onMouseLeave={() => {
+        setIsHovered(false);
+        setIsActive(false);
+      }}
       onMouseDown={() => setIsActive(true)}
       onMouseUp={() => setIsActive(false)}
       onClick={onClick}
@@ -240,7 +246,7 @@ export function VibeCard({
     boxShadow: '${styles.boxShadow}',
     transition: '${styles.transition}',
     cursor: '${styles.cursor}',
-    transform: isHovered ? 'translateY(-${styles.hoverLift}px)' : 'translateY(0)'${renderReactCardBackdropLines(styles)}
+    transform: isHovered ? 'translateY(${styles.hoverTranslateY}px)' : 'translateY(0)'${renderReactCardBackdropLines(styles)}
   };
 
   return (
@@ -272,6 +278,7 @@ export function generateReactComponent(tokens: VibeTokens, componentType: 'butto
 
 function generateVueButtonComponent(tokens: VibeTokens): ExportResult {
   const { theme, effects, interaction, button } = tokens;
+  const interactionMotion = resolveInteractionMotion(interaction);
 
   const code = `<script setup lang="ts">
 import { ref, computed } from 'vue';
@@ -317,7 +324,7 @@ const baseStyles = computed(() => ({
   transition: 'all ${interaction.transition.duration}ms ${interaction.transition.easing}',
   opacity: props.disabled ? 0.5 : 1,
   pointerEvents: props.disabled ? 'none' : 'auto' as const,
-  transform: isActive.value ? 'scale(0.98)' : isHovered.value ? 'scale(1.02)' : 'scale(1)',
+  transform: isActive.value ? 'translateY(${interactionMotion.activeTranslateY}px)' : isHovered.value ? 'translateY(${interactionMotion.hoverTranslateY}px)' : 'translateY(0)',
   backgroundColor: props.variant === 'solid' ? '${theme.palette.accent}' : 'transparent',
   color: props.variant === 'solid' ? '${button.override.text || theme.palette.text}' : '${theme.palette.accent}',
   border: '${effects.border.width}px solid ${withOpacity(theme.palette.border, effects.border.opacity)}',
@@ -335,11 +342,11 @@ function handleClick(event: MouseEvent) {
   <button
     :style="baseStyles"
     @mouseenter="isHovered = true"
-    @mouseleave="isHovered = false"
+    @mouseleave="isHovered = false; isActive = false"
     @mousedown="isActive = true"
     @mouseup="isActive = false"
     @click="handleClick"
-    :disabled="disabled"
+    :disabled="props.disabled"
   >
     <slot>Click Me</slot>
   </button>
@@ -382,7 +389,7 @@ const baseStyles = computed(() => ({
   boxShadow: '${styles.boxShadow}',
   transition: '${styles.transition}',
   cursor: '${styles.cursor}',
-  transform: isHovered.value ? 'translateY(-${styles.hoverLift}px)' : 'translateY(0)'${renderVueCardBackdropLines(styles)}
+  transform: isHovered.value ? 'translateY(${styles.hoverTranslateY}px)' : 'translateY(0)'${renderVueCardBackdropLines(styles)}
 }));
 </script>
 
@@ -412,6 +419,7 @@ export function generateVueComponent(tokens: VibeTokens, componentType: 'button'
 
 function generateHTMLButtonSnippet(tokens: VibeTokens): ExportResult {
   const { theme, effects, interaction, button } = tokens;
+  const interactionMotion = resolveInteractionMotion(interaction);
 
   const code = `<!-- VibeUI Button - Generated by VibeUI Generator -->
 
@@ -437,12 +445,12 @@ function generateHTMLButtonSnippet(tokens: VibeTokens): ExportResult {
 }
 
 .vibe-button:hover {
-  transform: translateY(-${interaction.hover.lift}px);
+  transform: translateY(${interactionMotion.hoverTranslateY}px);
   filter: brightness(${1 + interaction.hover.brighten});
 }
 
 .vibe-button:active {
-  transform: translateY(${interaction.active.press}px);
+  transform: translateY(${interactionMotion.activeTranslateY}px);
   filter: brightness(${1 - interaction.active.darken});
 }
 
@@ -508,7 +516,7 @@ function generateHTMLCardSnippet(tokens: VibeTokens): ExportResult {
 }
 
 .vibe-card:hover {
-  transform: translateY(-${styles.hoverLift}px);
+  transform: translateY(${styles.hoverTranslateY}px);
 }
 
 ${effects.glow.enabled ? `
@@ -596,6 +604,7 @@ module.exports = {
 
 export function generateCSSVariables(tokens: VibeTokens): ExportResult {
   const { theme, effects, interaction, button, card } = tokens;
+  const interactionMotion = resolveInteractionMotion(interaction);
   const rgb = hexToRgb(theme.palette.accent);
   const cardRgb = hexToRgb(theme.palette.surface);
 
@@ -629,9 +638,9 @@ export function generateCSSVariables(tokens: VibeTokens): ExportResult {
   /* Interactions */
   --v-transition-duration: ${interaction.transition.duration}ms;
   --v-transition-easing: ${interaction.transition.easing};
-  --v-hover-lift: ${interaction.hover.lift}px;
+  --v-hover-lift: ${interactionMotion.hoverLift}px;
   --v-hover-brighten: ${interaction.hover.brighten};
-  --v-active-press: ${interaction.active.press}px;
+  --v-active-press: ${interactionMotion.activePress}px;
   --v-active-darken: ${interaction.active.darken};
 
   /* Effects */
@@ -716,5 +725,3 @@ export function generateAllExports(tokens: VibeTokens, componentType: 'button' |
     json: generateJSONTokens(tokens)
   };
 }
-
-

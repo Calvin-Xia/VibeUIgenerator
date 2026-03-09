@@ -83,7 +83,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 100, easing: 'ease-out' },
-        hover: { lift: -2, brighten: 0, shadowBoost: 0 },
+        hover: { lift: 2, brighten: 0, shadowBoost: 0 },
         active: { press: 2, darken: 0.1 }
       },
       button: { variant: 'solid', height: 48, radius: 0, override: {} },
@@ -128,7 +128,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 250, easing: 'ease-out' },
-        hover: { lift: -4, brighten: 0.03, shadowBoost: 0.4 },
+        hover: { lift: 4, brighten: 0.03, shadowBoost: 0.4 },
         active: { press: 1, darken: 0.05 }
       },
       button: { variant: 'solid', height: 40, radius: 8, override: {} },
@@ -218,7 +218,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 180, easing: 'ease-out' },
-        hover: { lift: -2, brighten: 0.1, shadowBoost: 0.2 },
+        hover: { lift: 2, brighten: 0.1, shadowBoost: 0.2 },
         active: { press: 1, darken: 0.08 }
       },
       button: { variant: 'solid', height: 40, radius: 20, override: {} },
@@ -263,7 +263,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 300, easing: 'ease-out' },
-        hover: { lift: -2, brighten: 0.1, shadowBoost: 0.4 },
+        hover: { lift: 2, brighten: 0.1, shadowBoost: 0.4 },
         active: { press: 1, darken: 0.05 }
       },
       button: { variant: 'solid', height: 44, radius: 12, override: {} },
@@ -308,7 +308,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 150, easing: 'ease-out' },
-        hover: { lift: -1, brighten: 0, shadowBoost: 0.2 },
+        hover: { lift: 1, brighten: 0, shadowBoost: 0.2 },
         active: { press: 0, darken: 0.1 }
       },
       button: { variant: 'solid', height: 40, radius: 6, override: {} },
@@ -353,7 +353,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 200, easing: 'ease-out' },
-        hover: { lift: -2, brighten: 0.05, shadowBoost: 0.3 },
+        hover: { lift: 2, brighten: 0.05, shadowBoost: 0.3 },
         active: { press: 2, darken: 0.1 }
       },
       button: { variant: 'solid', height: 44, radius: 4, override: {} },
@@ -443,7 +443,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 250, easing: 'ease-out' },
-        hover: { lift: -2, brighten: 0.05, shadowBoost: 0.3 },
+        hover: { lift: 2, brighten: 0.05, shadowBoost: 0.3 },
         active: { press: 1, darken: 0.03 }
       },
       button: { variant: 'solid', height: 44, radius: 12, override: {} },
@@ -488,7 +488,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 200, easing: 'ease-out' },
-        hover: { lift: -4, brighten: 0.03, shadowBoost: 0.5 },
+        hover: { lift: 4, brighten: 0.03, shadowBoost: 0.5 },
         active: { press: 4, darken: 0.1 }
       },
       button: { variant: 'solid', height: 48, radius: 24, override: {} },
@@ -533,7 +533,7 @@ export const builtInPresets: Preset[] = [
       },
       interaction: {
         transition: { duration: 150, easing: 'ease-out' },
-        hover: { lift: -1, brighten: 0.02, shadowBoost: 0.2 },
+        hover: { lift: 1, brighten: 0.02, shadowBoost: 0.2 },
         active: { press: 0, darken: 0.05 }
       },
       button: { variant: 'solid', height: 40, radius: 4, override: {} },
