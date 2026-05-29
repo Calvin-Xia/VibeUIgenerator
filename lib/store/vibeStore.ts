@@ -10,6 +10,16 @@ import {
   addRecentScheme,
   normalizeTokenColors
 } from '@/lib/generator/normalize';
+import {
+  HistoryState,
+  createHistory,
+  pushEntry,
+  undo as historyUndo,
+  redo as historyRedo,
+  getCurrentTokens,
+  canUndo as historyCanUndo,
+  canRedo as historyCanRedo
+} from './history';
 
 const DEFAULT_TOKENS: VibeTokens = {
   schemaVersion: '1.0.0',
@@ -52,9 +62,9 @@ const DEFAULT_TOKENS: VibeTokens = {
     },
     glass: {
       enabled: false,
-      blur: 12,
-      opacity: 0.3,
-      saturation: 1.2
+      blur: 16,
+      opacity: 0.6,
+      saturation: 1.5
     },
     gradient: {
       enabled: true,
@@ -70,8 +80,8 @@ const DEFAULT_TOKENS: VibeTokens = {
     },
     glow: {
       enabled: true,
-      size: 24,
-      opacity: 0.15
+      size: 40,
+      opacity: 0.3
     }
   },
   interaction: {
@@ -104,8 +114,59 @@ const DEFAULT_TOKENS: VibeTokens = {
     padding: 24,
     surfaceAlpha: 1,
     borderAlpha: 0.5
+  },
+  input: {
+    height: 40,
+    radius: 8,
+    borderWidth: 1,
+    focusRingWidth: 2,
+    focusRingOffset: 2,
+    placeholderOpacity: 0.5
+  },
+  badge: {
+    radius: 9999,
+    paddingX: 8,
+    paddingY: 2,
+    fontSize: 12,
+    fontWeight: 500,
+    variant: 'solid',
+    statusColors: {
+      success: '#22c55e',
+      error: '#ef4444',
+      warning: '#f59e0b'
+    }
+  },
+  avatar: {
+    size: 40,
+    radius: 9999,
+    borderWidth: 2,
+    fallbackBg: '#6366f1',
+    fallbackText: '#ffffff'
+  },
+  checkbox: {
+    size: 20,
+    radius: 4,
+    borderWidth: 2,
+    checkSize: 12,
+    indicatorStyle: 'check'
   }
 };
+
+function migrateTokens(tokens: Partial<VibeTokens>): VibeTokens {
+  const migrated = {
+    ...tokens,
+    input: tokens.input ?? DEFAULT_TOKENS.input,
+    badge: tokens.badge ?? DEFAULT_TOKENS.badge,
+    avatar: tokens.avatar ?? DEFAULT_TOKENS.avatar,
+    checkbox: tokens.checkbox ?? DEFAULT_TOKENS.checkbox
+  };
+
+  if (!migrated.theme || !migrated.effects || !migrated.interaction || !migrated.button || !migrated.card) {
+    throw new Error('Missing required token sections');
+  }
+
+  return migrated as VibeTokens;
+}
 
 interface UIState {
   selectedComponent: ComponentType;
@@ -115,6 +176,7 @@ interface UIState {
   activeTab: 'inspector' | 'preview' | 'code';
   initialized: boolean;
   version: number;
+  history: HistoryState;
 }
 
 interface PresetsState {
@@ -145,7 +207,7 @@ function createRNG(seed: number) {
 }
 
 function cloneValue<T>(value: T): T {
-  return JSON.parse(JSON.stringify(value)) as T;
+  return structuredClone(value) as T;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -158,7 +220,8 @@ function isStringArray(value: unknown): value is string[] {
 
 function normalizeTokensOrNull(tokens: unknown): VibeTokens | null {
   try {
-    const normalized = normalizeTokenColors(tokens as VibeTokens);
+    const migrated = migrateTokens(tokens as Partial<VibeTokens>);
+    const normalized = normalizeTokenColors(migrated);
     return validateTokens(normalized) ? normalized : null;
   } catch {
     return null;
@@ -261,7 +324,8 @@ export const useVibeStore = create<StoreState>()(
         showGrid: false,
         activeTab: 'inspector',
         initialized: false,
-        version: 0
+        version: 0,
+        history: createHistory()
       },
       presets: {
         builtIn: [],
@@ -315,9 +379,11 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
 
       addRecentScheme(normalizedTokens);
 
+      const newHistory = pushEntry(state.ui.history, normalizedTokens, `Changed ${path}`);
+
       return {
         tokens: normalizedTokens,
-        ui: { ...state.ui, version: state.ui.version + 1 }
+        ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
       };
     });
   },
@@ -329,9 +395,12 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
       return;
     }
 
+    const state = get();
+    const newHistory = pushEntry(state.ui.history, normalizedPreset.tokens, `Applied preset: ${preset.name}`);
+
     set({
       tokens: normalizedPreset.tokens,
-      ui: { ...get().ui, version: get().ui.version + 1 }
+      ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
     });
     addRecentScheme(normalizedPreset.tokens);
   },
@@ -355,10 +424,12 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
     newTokens.card.radius = 8 + Math.floor(rng() * 16);
 
     const normalizedTokens = normalizeTokenColors(newTokens);
+    const state = get();
+    const newHistory = pushEntry(state.ui.history, normalizedTokens, 'Randomized styles');
 
     set({
       tokens: normalizedTokens,
-      ui: { ...get().ui, version: get().ui.version + 1 }
+      ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
     });
     addRecentScheme(normalizedTokens);
   },
@@ -373,9 +444,12 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
       return false;
     }
 
+    const state = get();
+    const newHistory = pushEntry(state.ui.history, tokens, 'Imported JSON');
+
     set({
       tokens,
-      ui: { ...get().ui, version: get().ui.version + 1 }
+      ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
     });
     addRecentScheme(tokens);
     return true;
@@ -394,16 +468,23 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
       return;
     }
 
+    const state = get();
+    const newHistory = pushEntry(state.ui.history, normalizedTokens, 'Loaded from URL');
+
     set({
       tokens: normalizedTokens,
-      ui: { ...get().ui, version: get().ui.version + 1 }
+      ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
     });
   },
 
   reset: () => {
+    const state = get();
+    const defaultTokens = cloneValue(DEFAULT_TOKENS);
+    const newHistory = pushEntry(state.ui.history, defaultTokens, 'Reset to defaults');
+
     set({
-      tokens: cloneValue(DEFAULT_TOKENS),
-      ui: { ...get().ui, version: get().ui.version + 1 }
+      tokens: defaultTokens,
+      ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
     });
   },
 
@@ -454,6 +535,66 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
     return get().presets.favorites.includes(id);
   },
 
+  exportPresets: () => {
+    const state = get();
+    const exportData = {
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      presets: state.presets.saved
+    };
+    return JSON.stringify(exportData, null, 2);
+  },
+
+  exportAllPresets: () => {
+    const state = get();
+    const exportData = {
+      version: '1.0.0',
+      exportedAt: new Date().toISOString(),
+      presets: [...state.presets.builtIn, ...state.presets.saved]
+    };
+    return JSON.stringify(exportData, null, 2);
+  },
+
+  importPresets: (json: string) => {
+    try {
+      const data = JSON.parse(json);
+
+      if (!data.version || !Array.isArray(data.presets)) {
+        console.warn('Invalid preset import format');
+        return false;
+      }
+
+      const validPresets = data.presets
+        .map((preset: Preset) => normalizePersistedPreset(preset))
+        .filter((preset: Preset | null): preset is Preset => preset !== null);
+
+      if (validPresets.length === 0) {
+        console.warn('No valid presets found in import');
+        return false;
+      }
+
+      const existingIds = new Set(get().presets.saved.map((p: Preset) => p.id));
+      const newPresets = validPresets.filter((p: Preset) => !existingIds.has(p.id));
+
+      if (newPresets.length === 0) {
+        console.warn('All imported presets already exist');
+        return false;
+      }
+
+      set((state) => ({
+        presets: {
+          ...state.presets,
+          saved: [...newPresets, ...state.presets.saved]
+        }
+      }));
+
+      return true;
+    } catch (error) {
+      console.error('Failed to import presets:', error);
+      return false;
+    }
+  },
+
   setSelectedComponent: (component: ComponentType) => {
     set((state) => ({
       ui: { ...state.ui, selectedComponent: component }
@@ -482,6 +623,40 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
     set((state) => ({
       ui: { ...state.ui, showGrid: !state.ui.showGrid }
     }));
+  },
+
+  undo: () => {
+    const state = get();
+    const newHistory = historyUndo(state.ui.history);
+    const tokens = getCurrentTokens(newHistory);
+
+    if (tokens) {
+      set({
+        tokens,
+        ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
+      });
+    }
+  },
+
+  redo: () => {
+    const state = get();
+    const newHistory = historyRedo(state.ui.history);
+    const tokens = getCurrentTokens(newHistory);
+
+    if (tokens) {
+      set({
+        tokens,
+        ui: { ...state.ui, version: state.ui.version + 1, history: newHistory }
+      });
+    }
+  },
+
+  canUndo: () => {
+    return historyCanUndo(get().ui.history);
+  },
+
+  canRedo: () => {
+    return historyCanRedo(get().ui.history);
   }
 });
 

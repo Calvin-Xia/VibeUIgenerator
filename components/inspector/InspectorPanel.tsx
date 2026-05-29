@@ -8,6 +8,8 @@ import { SliderRow } from './SliderRow';
 import { ToggleRow } from './ToggleRow';
 import { SelectRow } from './SelectRow';
 import { AccessibilityHint } from './AccessibilityHint';
+import { AnimationEditor } from './AnimationEditor';
+import { PaletteGenerator } from './PaletteGenerator';
 import { getContrastRating } from '@/lib/generator/color';
 import * as Accordion from '@radix-ui/react-accordion';
 
@@ -267,34 +269,24 @@ export function InspectorPanel() {
                 unit="px"
                 onChange={(value) => handleSetToken('button.radius', value)}
               />
-              <div className="text-xs font-medium text-muted-foreground">Interaction</div>
-              <SliderRow
-                label="Duration"
-                value={tokens.interaction.transition.duration}
-                min={50}
-                max={500}
-                step={10}
-                unit="ms"
-                onChange={(value) => handleSetToken('interaction.transition.duration', value)}
-              />
-              <SliderRow
-                label="Hover Lift"
-                value={tokens.interaction.hover.lift}
-                min={0}
-                max={8}
-                step={0.5}
-                unit="px"
-                onChange={(value) => handleSetToken('interaction.hover.lift', value)}
-              />
-              <SliderRow
-                label="Active Press"
-                value={tokens.interaction.active.press}
-                min={0}
-                max={8}
-                step={0.5}
-                unit="px"
-                onChange={(value) => handleSetToken('interaction.active.press', value)}
-              />
+            </Accordion.Content>
+          </Accordion.Item>
+
+          <Accordion.Item value="animation" className="border-0">
+            <Accordion.Trigger className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary/50">
+              <span>Animation</span>
+            </Accordion.Trigger>
+            <Accordion.Content className="overflow-hidden px-4 pb-4 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <AnimationEditor />
+            </Accordion.Content>
+          </Accordion.Item>
+
+          <Accordion.Item value="palette" className="border-0">
+            <Accordion.Trigger className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary/50">
+              <span>Color Palette</span>
+            </Accordion.Trigger>
+            <Accordion.Content className="overflow-hidden px-4 pb-4 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <PaletteGenerator />
             </Accordion.Content>
           </Accordion.Item>
 
@@ -336,6 +328,219 @@ export function InspectorPanel() {
                 max={1}
                 step={0.05}
                 onChange={(value) => handleSetToken('card.borderAlpha', value)}
+              />
+            </Accordion.Content>
+          </Accordion.Item>
+
+          <Accordion.Item value="input" className="border-0">
+            <Accordion.Trigger className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary/50">
+              <span>Input</span>
+            </Accordion.Trigger>
+            <Accordion.Content className="overflow-hidden px-4 pb-4 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <SliderRow
+                label="Height"
+                value={tokens.input.height}
+                min={32}
+                max={56}
+                step={4}
+                unit="px"
+                onChange={(value) => handleSetToken('input.height', value)}
+              />
+              <SliderRow
+                label="Radius"
+                value={tokens.input.radius}
+                min={0}
+                max={24}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('input.radius', value)}
+              />
+              <SliderRow
+                label="Border Width"
+                value={tokens.input.borderWidth}
+                min={0}
+                max={4}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('input.borderWidth', value)}
+              />
+              <SliderRow
+                label="Focus Ring Width"
+                value={tokens.input.focusRingWidth}
+                min={0}
+                max={8}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('input.focusRingWidth', value)}
+              />
+              <SliderRow
+                label="Focus Ring Offset"
+                value={tokens.input.focusRingOffset}
+                min={0}
+                max={8}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('input.focusRingOffset', value)}
+              />
+            </Accordion.Content>
+          </Accordion.Item>
+
+          <Accordion.Item value="badge" className="border-0">
+            <Accordion.Trigger className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary/50">
+              <span>Badge</span>
+            </Accordion.Trigger>
+            <Accordion.Content className="overflow-hidden px-4 pb-4 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <SelectRow
+                label="Variant"
+                value={tokens.badge.variant}
+                options={[
+                  { value: 'solid', label: 'Solid' },
+                  { value: 'outline', label: 'Outline' },
+                  { value: 'soft', label: 'Soft' }
+                ]}
+                onChange={(value) => handleSetToken('badge.variant', value)}
+              />
+              <SliderRow
+                label="Radius"
+                value={tokens.badge.radius}
+                min={0}
+                max={9999}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('badge.radius', value)}
+              />
+              <SliderRow
+                label="Font Size"
+                value={tokens.badge.fontSize}
+                min={10}
+                max={18}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('badge.fontSize', value)}
+              />
+              <SliderRow
+                label="Font Weight"
+                value={tokens.badge.fontWeight}
+                min={400}
+                max={700}
+                step={100}
+                onChange={(value) => handleSetToken('badge.fontWeight', value)}
+              />
+              <SliderRow
+                label="Padding X"
+                value={tokens.badge.paddingX}
+                min={4}
+                max={24}
+                step={2}
+                unit="px"
+                onChange={(value) => handleSetToken('badge.paddingX', value)}
+              />
+              <SliderRow
+                label="Padding Y"
+                value={tokens.badge.paddingY}
+                min={2}
+                max={12}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('badge.paddingY', value)}
+              />
+            </Accordion.Content>
+          </Accordion.Item>
+
+          <Accordion.Item value="avatar" className="border-0">
+            <Accordion.Trigger className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary/50">
+              <span>Avatar</span>
+            </Accordion.Trigger>
+            <Accordion.Content className="overflow-hidden px-4 pb-4 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <SliderRow
+                label="Size"
+                value={tokens.avatar.size}
+                min={24}
+                max={80}
+                step={4}
+                unit="px"
+                onChange={(value) => handleSetToken('avatar.size', value)}
+              />
+              <SliderRow
+                label="Radius"
+                value={tokens.avatar.radius}
+                min={0}
+                max={9999}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('avatar.radius', value)}
+              />
+              <SliderRow
+                label="Border Width"
+                value={tokens.avatar.borderWidth}
+                min={0}
+                max={6}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('avatar.borderWidth', value)}
+              />
+              <ColorPickerRow
+                label="Fallback Background"
+                value={tokens.avatar.fallbackBg}
+                onChange={(value) => handleSetToken('avatar.fallbackBg', value)}
+              />
+              <ColorPickerRow
+                label="Fallback Text"
+                value={tokens.avatar.fallbackText}
+                onChange={(value) => handleSetToken('avatar.fallbackText', value)}
+              />
+            </Accordion.Content>
+          </Accordion.Item>
+
+          <Accordion.Item value="checkbox" className="border-0">
+            <Accordion.Trigger className="flex w-full items-center justify-between px-4 py-3 text-sm font-medium hover:bg-secondary/50">
+              <span>Checkbox</span>
+            </Accordion.Trigger>
+            <Accordion.Content className="overflow-hidden px-4 pb-4 data-[state=closed]:animate-accordion-up data-[state=open]:animate-accordion-down">
+              <SliderRow
+                label="Size"
+                value={tokens.checkbox.size}
+                min={16}
+                max={32}
+                step={2}
+                unit="px"
+                onChange={(value) => handleSetToken('checkbox.size', value)}
+              />
+              <SliderRow
+                label="Radius"
+                value={tokens.checkbox.radius}
+                min={0}
+                max={16}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('checkbox.radius', value)}
+              />
+              <SliderRow
+                label="Border Width"
+                value={tokens.checkbox.borderWidth}
+                min={1}
+                max={4}
+                step={1}
+                unit="px"
+                onChange={(value) => handleSetToken('checkbox.borderWidth', value)}
+              />
+              <SliderRow
+                label="Check Size"
+                value={tokens.checkbox.checkSize}
+                min={8}
+                max={24}
+                step={2}
+                unit="px"
+                onChange={(value) => handleSetToken('checkbox.checkSize', value)}
+              />
+              <SelectRow
+                label="Indicator Style"
+                value={tokens.checkbox.indicatorStyle}
+                options={[
+                  { value: 'check', label: 'Check' },
+                  { value: 'dot', label: 'Dot' }
+                ]}
+                onChange={(value) => handleSetToken('checkbox.indicatorStyle', value)}
               />
             </Accordion.Content>
           </Accordion.Item>

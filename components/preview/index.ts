@@ -2,4 +2,8 @@ export { PreviewCanvas } from './PreviewCanvas';
 export { CanvasBackground } from './CanvasBackground';
 export { ButtonPreview } from './ButtonPreview';
 export { CardPreview } from './CardPreview';
+export { InputPreview } from './InputPreview';
+export { BadgePreview } from './BadgePreview';
+export { AvatarPreview } from './AvatarPreview';
+export { CheckboxPreview } from './CheckboxPreview';
 export { PreviewSwitch } from './PreviewSwitch';

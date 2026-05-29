@@ -84,8 +84,8 @@ export function getButtonStyles(tokens: VibeTokens): React.CSSProperties {
   if (effects.glass.enabled) {
     styles.backdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
     styles.WebkitBackdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
-    styles.backgroundColor = withOpacity(tokens.theme.palette.surface, effects.glass.opacity);
-    styles.border = `${effects.border.width}px solid ${withOpacity(tokens.theme.palette.border, 0.2)}`;
+    styles.backgroundColor = withOpacity(buttonBg, effects.glass.opacity);
+    styles.border = `${effects.border.width}px solid ${withOpacity(buttonBorder, 0.3)}`;
   }
 
   return styles;
@@ -122,8 +122,8 @@ export function getCardStyles(tokens: VibeTokens): React.CSSProperties {
   if (effects.glass.enabled) {
     styles.backdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
     styles.WebkitBackdropFilter = `blur(${effects.glass.blur}px) saturate(${effects.glass.saturation})`;
-    styles.backgroundColor = withOpacity(tokens.theme.palette.surface, effects.glass.opacity);
-    styles.border = `${effects.border.width}px solid ${withOpacity(tokens.theme.palette.border, 0.2)}`;
+    styles.backgroundColor = withOpacity(cardBg, effects.glass.opacity);
+    styles.border = `${effects.border.width}px solid ${withOpacity(cardBorder, 0.3)}`;
   }
 
   return styles;
@@ -138,5 +138,123 @@ export function getCanvasStyles(tokens: VibeTokens): React.CSSProperties {
       ? generateGradientStops(effects.gradient.angle, effects.gradient.stops)
       : 'none',
     transition: 'background-color 300ms ease'
+  };
+}
+
+export function getInputStyles(tokens: VibeTokens): React.CSSProperties {
+  const { theme, effects, interaction, input } = tokens;
+
+  return {
+    height: input.height,
+    padding: `${theme.spacing.paddingY}px ${theme.spacing.paddingX}px`,
+    fontFamily: theme.typography.fontFamily,
+    fontSize: theme.typography.fontSize,
+    fontWeight: theme.typography.fontWeight,
+    letterSpacing: `${theme.typography.letterSpacing}em`,
+    borderRadius: input.radius,
+    border: `${input.borderWidth}px solid ${withOpacity(theme.palette.border, effects.border.opacity)}`,
+    backgroundColor: theme.palette.surface,
+    color: theme.palette.text,
+    outline: 'none',
+    transition: `all ${interaction.transition.duration}ms ${interaction.transition.easing}`,
+    boxShadow: `0 0 0 ${input.focusRingOffset}px ${withOpacity(theme.palette.accent, 0)}`
+  };
+}
+
+export function getBadgeStyles(tokens: VibeTokens) {
+  const { theme, badge } = tokens;
+
+  const baseStyles: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: `${badge.paddingY}px ${badge.paddingX}px`,
+    fontFamily: theme.typography.fontFamily,
+    fontSize: badge.fontSize,
+    fontWeight: badge.fontWeight,
+    borderRadius: badge.radius,
+    lineHeight: 1
+  };
+
+  return {
+    solid: {
+      ...baseStyles,
+      backgroundColor: theme.palette.accent,
+      color: '#ffffff'
+    },
+    outline: {
+      ...baseStyles,
+      backgroundColor: 'transparent',
+      border: `1px solid ${theme.palette.accent}`,
+      color: theme.palette.accent
+    },
+    soft: {
+      ...baseStyles,
+      backgroundColor: withOpacity(theme.palette.accent, 0.1),
+      color: theme.palette.accent
+    }
+  };
+}
+
+export function getAvatarStyles(tokens: VibeTokens) {
+  const { theme, avatar } = tokens;
+
+  return {
+    container: {
+      width: avatar.size,
+      height: avatar.size,
+      borderRadius: avatar.radius,
+      border: `${avatar.borderWidth}px solid ${theme.palette.border}`,
+      overflow: 'hidden',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: avatar.fallbackBg
+    } as React.CSSProperties,
+    fallback: {
+      color: avatar.fallbackText,
+      fontSize: avatar.size * 0.4,
+      fontWeight: 600,
+      fontFamily: theme.typography.fontFamily
+    } as React.CSSProperties
+  };
+}
+
+export function getCheckboxStyles(tokens: VibeTokens) {
+  const { theme, checkbox } = tokens;
+
+  const baseBox: React.CSSProperties = {
+    width: checkbox.size,
+    height: checkbox.size,
+    borderRadius: checkbox.radius,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    transition: 'all 150ms ease'
+  };
+
+  return {
+    unchecked: {
+      ...baseBox,
+      border: `${checkbox.borderWidth}px solid ${theme.palette.border}`,
+      backgroundColor: 'transparent'
+    },
+    checked: {
+      ...baseBox,
+      border: `${checkbox.borderWidth}px solid ${theme.palette.accent}`,
+      backgroundColor: theme.palette.accent
+    },
+    disabled: {
+      ...baseBox,
+      border: `${checkbox.borderWidth}px solid ${theme.palette.border}`,
+      backgroundColor: theme.palette.surface,
+      opacity: 0.5,
+      cursor: 'not-allowed'
+    },
+    indicator: {
+      width: checkbox.checkSize,
+      height: checkbox.checkSize,
+      color: '#ffffff'
+    } as React.CSSProperties
   };
 }

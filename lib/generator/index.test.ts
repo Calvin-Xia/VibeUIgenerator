@@ -92,6 +92,36 @@ const tokens: VibeTokens = {
     padding: 24,
     surfaceAlpha: 1,
     borderAlpha: 0.5
+  },
+  input: {
+    height: 40,
+    radius: 8,
+    borderWidth: 1,
+    focusRingWidth: 2,
+    focusRingOffset: 2,
+    placeholderOpacity: 0.5
+  },
+  badge: {
+    radius: 9999,
+    paddingX: 8,
+    paddingY: 2,
+    fontSize: 12,
+    fontWeight: 500,
+    variant: 'solid'
+  },
+  avatar: {
+    size: 40,
+    radius: 9999,
+    borderWidth: 2,
+    fallbackBg: '#6366f1',
+    fallbackText: '#ffffff'
+  },
+  checkbox: {
+    size: 20,
+    radius: 4,
+    borderWidth: 2,
+    checkSize: 12,
+    indicatorStyle: 'check'
   }
 };
 

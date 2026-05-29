@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 
 interface CodeTabsProps {
   activeTab: string;
-  onChange: (tab: 'css' | 'tailwind' | 'html' | 'react' | 'vue' | 'json') => void;
+  onChange: (tab: 'css' | 'tailwind' | 'html' | 'react' | 'vue' | 'json' | 'figma' | 'styleDictionary' | 'styledComponents' | 'emotion') => void;
 }
 
 export function CodeTabs({ activeTab, onChange }: CodeTabsProps) {
@@ -14,7 +14,11 @@ export function CodeTabs({ activeTab, onChange }: CodeTabsProps) {
     { id: 'react', label: 'React' },
     { id: 'vue', label: 'Vue' },
     { id: 'html', label: 'HTML' },
-    { id: 'json', label: 'JSON' }
+    { id: 'json', label: 'JSON' },
+    { id: 'figma', label: 'Figma' },
+    { id: 'styleDictionary', label: 'Style Dictionary' },
+    { id: 'styledComponents', label: 'Styled Components' },
+    { id: 'emotion', label: 'Emotion' }
   ] as const;
 
   return (

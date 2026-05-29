@@ -1,4 +1,47 @@
-import { Preset } from '@/lib/types/tokens';
+import { Preset, VibeTokens } from '@/lib/types/tokens';
+
+const DEFAULT_NEW_TOKENS = {
+  input: {
+    height: 40,
+    radius: 8,
+    borderWidth: 1,
+    focusRingWidth: 2,
+    focusRingOffset: 2,
+    placeholderOpacity: 0.5
+  },
+  badge: {
+    radius: 9999,
+    paddingX: 8,
+    paddingY: 2,
+    fontSize: 12,
+    fontWeight: 500,
+    variant: 'solid' as const
+  },
+  avatar: {
+    size: 40,
+    radius: 9999,
+    borderWidth: 2,
+    fallbackBg: '#6366f1',
+    fallbackText: '#ffffff'
+  },
+  checkbox: {
+    size: 20,
+    radius: 4,
+    borderWidth: 2,
+    checkSize: 12,
+    indicatorStyle: 'check' as const
+  }
+};
+
+function ensureNewTokens(tokens: Partial<VibeTokens>): VibeTokens {
+  return {
+    ...tokens,
+    input: tokens.input ?? DEFAULT_NEW_TOKENS.input,
+    badge: tokens.badge ?? DEFAULT_NEW_TOKENS.badge,
+    avatar: tokens.avatar ?? DEFAULT_NEW_TOKENS.avatar,
+    checkbox: tokens.checkbox ?? DEFAULT_NEW_TOKENS.checkbox
+  } as VibeTokens;
+}
 
 export const builtInPresets: Preset[] = [
   {
@@ -6,7 +49,7 @@ export const builtInPresets: Preset[] = [
     name: 'Glass',
     description: 'Modern frosted glass effect',
     tags: ['glass', 'modern', 'clean'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -43,7 +86,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 44, radius: 12, override: {} },
       card: { radius: 20, padding: 24, surfaceAlpha: 0.5, borderAlpha: 0.3 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -51,7 +94,7 @@ export const builtInPresets: Preset[] = [
     name: 'Neo Brutal',
     description: 'Bold outlines and solid colors',
     tags: ['bold', 'brutal', 'retro'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -88,7 +131,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 48, radius: 0, override: {} },
       card: { radius: 0, padding: 28, surfaceAlpha: 1, borderAlpha: 1 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -96,7 +139,7 @@ export const builtInPresets: Preset[] = [
     name: 'Soft Shadow',
     description: 'Subtle and elegant shadows',
     tags: ['soft', 'elegant', 'minimal'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -133,7 +176,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 40, radius: 8, override: {} },
       card: { radius: 16, padding: 20, surfaceAlpha: 1, borderAlpha: 0.3 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -141,7 +184,7 @@ export const builtInPresets: Preset[] = [
     name: 'Cyber',
     description: 'Neon glow and dark mode',
     tags: ['cyber', 'neon', 'dark'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'dark',
@@ -178,7 +221,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 44, radius: 8, override: {} },
       card: { radius: 12, padding: 24, surfaceAlpha: 0.6, borderAlpha: 0.5 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -186,7 +229,7 @@ export const builtInPresets: Preset[] = [
     name: 'Y2K',
     description: 'Early 2000s aesthetic',
     tags: ['y2k', 'vintage', 'nostalgic'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -223,7 +266,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 40, radius: 20, override: {} },
       card: { radius: 24, padding: 20, surfaceAlpha: 0.95, borderAlpha: 0.8 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -231,7 +274,7 @@ export const builtInPresets: Preset[] = [
     name: 'Aurora',
     description: 'Northern lights inspired colors',
     tags: ['aurora', 'nature', 'colorful'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'dark',
@@ -268,7 +311,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 44, radius: 12, override: {} },
       card: { radius: 20, padding: 24, surfaceAlpha: 0.5, borderAlpha: 0.4 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -276,7 +319,7 @@ export const builtInPresets: Preset[] = [
     name: 'Mono',
     description: 'Monochrome minimal',
     tags: ['mono', 'minimal', 'black-white'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -313,7 +356,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 40, radius: 6, override: {} },
       card: { radius: 8, padding: 20, surfaceAlpha: 1, borderAlpha: 1 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -321,7 +364,7 @@ export const builtInPresets: Preset[] = [
     name: 'Retro',
     description: '70s vintage style',
     tags: ['retro', 'vintage', '70s'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -358,7 +401,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 44, radius: 4, override: {} },
       card: { radius: 8, padding: 24, surfaceAlpha: 1, borderAlpha: 1 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -366,7 +409,7 @@ export const builtInPresets: Preset[] = [
     name: 'Noir',
     description: 'Film noir aesthetic',
     tags: ['noir', 'film', 'dark'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'dark',
@@ -403,7 +446,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 40, radius: 2, override: {} },
       card: { radius: 4, padding: 20, surfaceAlpha: 0.8, borderAlpha: 0.4 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -411,7 +454,7 @@ export const builtInPresets: Preset[] = [
     name: 'Pastel',
     description: 'Soft pastel colors',
     tags: ['pastel', 'soft', 'cute'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -448,7 +491,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 44, radius: 12, override: {} },
       card: { radius: 20, padding: 24, surfaceAlpha: 0.7, borderAlpha: 0.4 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -456,7 +499,7 @@ export const builtInPresets: Preset[] = [
     name: 'Clay',
     description: 'Tactile clay-like appearance',
     tags: ['clay', 'tactile', '3d'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -493,7 +536,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 48, radius: 24, override: {} },
       card: { radius: 28, padding: 28, surfaceAlpha: 1, borderAlpha: 0 }
-    },
+    }),
     isBuiltIn: true
   },
   {
@@ -501,7 +544,7 @@ export const builtInPresets: Preset[] = [
     name: 'Paper',
     description: 'Realistic paper texture',
     tags: ['paper', 'texture', 'natural'],
-    tokens: {
+    tokens: ensureNewTokens({
       schemaVersion: '1.0.0',
       theme: {
         mode: 'light',
@@ -538,7 +581,7 @@ export const builtInPresets: Preset[] = [
       },
       button: { variant: 'solid', height: 40, radius: 4, override: {} },
       card: { radius: 4, padding: 20, surfaceAlpha: 1, borderAlpha: 1 }
-    },
+    }),
     isBuiltIn: true
   }
 ];

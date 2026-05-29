@@ -4,7 +4,8 @@ import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useVibeStore, useActions } from '@/lib/store/vibeStore';
 import { toast } from '@/components/ui/use-toast';
-import { Heart, Trash2, Plus } from 'lucide-react';
+import { Heart, Trash2, Plus, Download, Upload, Share2 } from 'lucide-react';
+import { encodePresetsToURL } from '@/lib/generator/normalize';
 import {
   Dialog,
   DialogContent,
@@ -185,33 +186,98 @@ export function PresetPanel() {
       <div className="border-b p-4">
         <div className="flex items-center justify-between">
           <h2 className="font-semibold">Presets</h2>
-          <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
-            <DialogTrigger asChild>
-              <button className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
-                <Plus className="h-4 w-4" />
-                Save
-              </button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Save Preset</DialogTitle>
-                <DialogDescription>
-                  Give your current configuration a name to save it for later.
-                </DialogDescription>
-              </DialogHeader>
-              <Input
-                value={presetName}
-                onChange={(e) => setPresetName(e.target.value)}
-                placeholder="My awesome preset"
-              />
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={handleSavePreset}>Save</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                const json = actions.exportPresets();
+                const blob = new Blob([json], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'vibeui-presets.json';
+                a.click();
+                URL.revokeObjectURL(url);
+                toast({ title: 'Presets exported successfully' });
+              }}
+              className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-sm font-medium transition-colors hover:bg-secondary/80"
+              title="Export presets"
+            >
+              <Download className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => {
+                const input = document.createElement('input');
+                input.type = 'file';
+                input.accept = '.json';
+                input.onchange = async (e) => {
+                  const file = (e.target as HTMLInputElement).files?.[0];
+                  if (!file) return;
+
+                  const text = await file.text();
+                  const success = actions.importPresets(text);
+
+                  if (success) {
+                    toast({ title: 'Presets imported successfully' });
+                  } else {
+                    toast({
+                      title: 'Import failed',
+                      description: 'Invalid preset file format',
+                      variant: 'destructive'
+                    });
+                  }
+                };
+                input.click();
+              }}
+              className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-sm font-medium transition-colors hover:bg-secondary/80"
+              title="Import presets"
+            >
+              <Upload className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => {
+                const savedPresets = presets.saved || [];
+                if (savedPresets.length === 0) {
+                  toast({ title: 'No saved presets to share', variant: 'destructive' });
+                  return;
+                }
+                const encoded = encodePresetsToURL(savedPresets);
+                const url = `${window.location.origin}/?presets=${encoded}`;
+                navigator.clipboard.writeText(url);
+                toast({ title: 'Preset collection link copied!', description: 'Share this link with others' });
+              }}
+              className="inline-flex items-center gap-1 rounded-md bg-secondary px-3 py-1.5 text-sm font-medium transition-colors hover:bg-secondary/80"
+              title="Share preset collection"
+            >
+              <Share2 className="h-4 w-4" />
+            </button>
+            <Dialog open={showSaveDialog} onOpenChange={setShowSaveDialog}>
+              <DialogTrigger asChild>
+                <button className="inline-flex items-center gap-1 rounded-md bg-primary px-3 py-1.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+                  <Plus className="h-4 w-4" />
+                  Save
+                </button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>Save Preset</DialogTitle>
+                  <DialogDescription>
+                    Give your current configuration a name to save it for later.
+                  </DialogDescription>
+                </DialogHeader>
+                <Input
+                  value={presetName}
+                  onChange={(e) => setPresetName(e.target.value)}
+                  placeholder="My awesome preset"
+                />
+                <DialogFooter>
+                  <Button variant="outline" onClick={() => setShowSaveDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleSavePreset}>Save</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
         </div>
       </div>
 

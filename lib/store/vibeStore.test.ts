@@ -2,6 +2,7 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vites
 
 import type { Preset, VibeTokens } from '@/lib/types/tokens';
 import type { StoreState } from '@/lib/store/vibeStore';
+import { createHistory } from '@/lib/store/history';
 
 const localStorageMock = {
   getItem: vi.fn(() => null),
@@ -28,7 +29,8 @@ function createTestHarness(initialTokens?: VibeTokens) {
       showGrid: false,
       activeTab: 'inspector',
       initialized: true,
-      version: 0
+      version: 0,
+      history: createHistory()
     },
     presets: {
       builtIn: [],

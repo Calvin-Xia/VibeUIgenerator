@@ -3,8 +3,11 @@
 import { TopBar } from './TopBar';
 import { MainLayout } from './MainLayout';
 import { useHydrated } from '@/lib/utils';
+import { useUndoRedo } from '@/lib/hooks/useUndoRedo';
 
 function AppContent() {
+  useUndoRedo();
+  
   return (
     <div className="flex h-screen w-full flex-col overflow-hidden bg-background">
       <TopBar />

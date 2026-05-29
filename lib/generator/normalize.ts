@@ -1,5 +1,5 @@
 import LZString from 'lz-string';
-import { VibeTokens } from '@/lib/types/tokens';
+import { VibeTokens, Preset } from '@/lib/types/tokens';
 import { isSixDigitHexColor, normalizeToSixDigitHex } from './color';
 
 const SCHEMA_VERSION = '1.0.0';
@@ -105,6 +105,9 @@ export function normalizeTokenColors(tokens: VibeTokens): VibeTokens {
   normalized.button.override.bg = normalizeOptionalHexColor(normalized.button.override.bg, 'button.override.bg');
   normalized.button.override.text = normalizeOptionalHexColor(normalized.button.override.text, 'button.override.text');
   normalized.button.override.border = normalizeOptionalHexColor(normalized.button.override.border, 'button.override.border');
+
+  normalized.avatar.fallbackBg = normalizeRequiredHexColor(normalized.avatar.fallbackBg, 'avatar.fallbackBg');
+  normalized.avatar.fallbackText = normalizeRequiredHexColor(normalized.avatar.fallbackText, 'avatar.fallbackText');
 
   return normalized;
 }
@@ -215,6 +218,36 @@ function getTokenValidationError(tokens: unknown): string | null {
     assertNumber(tokens.card.surfaceAlpha, 'card.surfaceAlpha');
     assertNumber(tokens.card.borderAlpha, 'card.borderAlpha');
 
+    assertRecord(tokens.input, 'input');
+    assertNumber(tokens.input.height, 'input.height');
+    assertNumber(tokens.input.radius, 'input.radius');
+    assertNumber(tokens.input.borderWidth, 'input.borderWidth');
+    assertNumber(tokens.input.focusRingWidth, 'input.focusRingWidth');
+    assertNumber(tokens.input.focusRingOffset, 'input.focusRingOffset');
+    assertNumber(tokens.input.placeholderOpacity, 'input.placeholderOpacity');
+
+    assertRecord(tokens.badge, 'badge');
+    assertNumber(tokens.badge.radius, 'badge.radius');
+    assertNumber(tokens.badge.paddingX, 'badge.paddingX');
+    assertNumber(tokens.badge.paddingY, 'badge.paddingY');
+    assertNumber(tokens.badge.fontSize, 'badge.fontSize');
+    assertNumber(tokens.badge.fontWeight, 'badge.fontWeight');
+    assertEnum(tokens.badge.variant, 'badge.variant', new Set(['solid', 'outline', 'soft']));
+
+    assertRecord(tokens.avatar, 'avatar');
+    assertNumber(tokens.avatar.size, 'avatar.size');
+    assertNumber(tokens.avatar.radius, 'avatar.radius');
+    assertNumber(tokens.avatar.borderWidth, 'avatar.borderWidth');
+    assertHexColor(tokens.avatar.fallbackBg, 'avatar.fallbackBg');
+    assertHexColor(tokens.avatar.fallbackText, 'avatar.fallbackText');
+
+    assertRecord(tokens.checkbox, 'checkbox');
+    assertNumber(tokens.checkbox.size, 'checkbox.size');
+    assertNumber(tokens.checkbox.radius, 'checkbox.radius');
+    assertNumber(tokens.checkbox.borderWidth, 'checkbox.borderWidth');
+    assertNumber(tokens.checkbox.checkSize, 'checkbox.checkSize');
+    assertEnum(tokens.checkbox.indicatorStyle, 'checkbox.indicatorStyle', new Set(['check', 'dot']));
+
     return null;
   } catch (error) {
     return error instanceof Error ? error.message : 'Unknown token validation error';
@@ -299,6 +332,41 @@ export function addRecentScheme(tokens: VibeTokens): void {
     }
   } catch (error) {
     console.error('Failed to save recent scheme:', error);
+  }
+}
+
+export function encodePresetsToURL(presets: Preset[]): string {
+  const data = JSON.stringify(presets);
+  return LZString.compressToEncodedURIComponent(data);
+}
+
+export function decodePresetsFromURL(encoded: string): Preset[] | null {
+  try {
+    const json = LZString.decompressFromEncodedURIComponent(encoded);
+    if (!json) return null;
+
+    const presets = JSON.parse(json) as unknown;
+    if (!Array.isArray(presets)) return null;
+
+    const validPresets = presets
+      .map((preset: unknown) => {
+        if (!isRecord(preset)) return null;
+        if (typeof preset.id !== 'string') return null;
+        if (typeof preset.name !== 'string') return null;
+
+        const tokens = tryNormalizeTokens((preset as Record<string, unknown>).tokens);
+        if (!tokens) return null;
+
+        return {
+          ...preset,
+          tokens
+        } as Preset;
+      })
+      .filter((preset): preset is Preset => preset !== null);
+
+    return validPresets.length > 0 ? validPresets : null;
+  } catch {
+    return null;
   }
 }
 

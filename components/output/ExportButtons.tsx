@@ -19,26 +19,28 @@ export function ExportButtons({ activeTab = 'css' }: ExportButtonsProps) {
   const [copying, setCopying] = useState(false);
 
   const getCode = () => {
+    const componentType = selectedComponent === 'button' || selectedComponent === 'card' ? selectedComponent : 'button';
     switch (activeTab) {
       case 'css': return generateCSSVariables(tokens).code;
       case 'tailwind': return generateTailwindConfig(tokens).code;
-      case 'html': return generateHTMLSnippets(tokens, selectedComponent).code;
-      case 'react': return generateReactComponent(tokens, selectedComponent).code;
-      case 'vue': return generateVueComponent(tokens, selectedComponent).code;
+      case 'html': return generateHTMLSnippets(tokens, componentType).code;
+      case 'react': return generateReactComponent(tokens, componentType).code;
+      case 'vue': return generateVueComponent(tokens, componentType).code;
       case 'json': return generateJSONTokens(tokens).code;
       default: return generateCSSVariables(tokens).code;
     }
   };
 
   const getFilename = () => {
+    const componentType = selectedComponent === 'button' || selectedComponent === 'card' ? selectedComponent : 'button';
     switch (activeTab) {
       case 'css': return 'vibe-variables.css';
       case 'tailwind': return 'tailwind.config.js';
-      case 'html': return `vibe-${selectedComponent}.html`;
-      case 'react': return `vibe-${selectedComponent}.tsx`;
-      case 'vue': return `vibe-${selectedComponent}.vue`;
+      case 'html': return `vibe-${componentType}.html`;
+      case 'react': return `vibe-${componentType}.tsx`;
+      case 'vue': return `vibe-${componentType}.vue`;
       case 'json': return 'vibe-tokens.json';
-      default: return `vibe-${selectedComponent}.css`;
+      default: return `vibe-${componentType}.css`;
     }
   };
 

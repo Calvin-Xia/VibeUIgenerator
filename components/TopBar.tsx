@@ -18,12 +18,16 @@ import {
   Wand2,
   Code2,
   Menu,
-  X
+  X,
+  Undo2,
+  Redo2
 } from 'lucide-react';
 
 export function TopBar() {
   const tokens = useVibeStore(state => state.tokens);
   const presets = useVibeStore(state => state.presets);
+  const canUndo = useVibeStore(state => state.ui.history.currentIndex > 0);
+  const canRedo = useVibeStore(state => state.ui.history.currentIndex < state.ui.history.entries.length - 1);
   const actions = useActions();
   
   const [showPresets, setShowPresets] = useState(false);
@@ -74,6 +78,25 @@ export function TopBar() {
           <Wand2 className="h-4 w-4" />
           Randomize
         </button>
+
+        <div className="flex items-center gap-1 border-l pl-2 ml-1">
+          <button
+            onClick={() => actions.undo()}
+            disabled={!canUndo}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Undo (Ctrl+Z)"
+          >
+            <Undo2 className="h-4 w-4" />
+          </button>
+          <button
+            onClick={() => actions.redo()}
+            disabled={!canRedo}
+            className="inline-flex h-9 w-9 items-center justify-center rounded-md transition-colors hover:bg-secondary disabled:opacity-50 disabled:cursor-not-allowed"
+            title="Redo (Ctrl+Shift+Z)"
+          >
+            <Redo2 className="h-4 w-4" />
+          </button>
+        </div>
 
         <div className="relative">
           <button

@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '@/components/AppShell';
 import { useVibeStore, useActions } from '@/lib/store/vibeStore';
-import { decodeFromURL } from '@/lib/generator/normalize';
+import { decodeFromURL, decodePresetsFromURL } from '@/lib/generator/normalize';
 import { loadPresets } from '@/lib/presets/builtIn';
 import { toast } from '@/components/ui/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -43,6 +43,30 @@ function AppContent() {
         const presets = useVibeStore.getState().presets;
         if (!presets.builtIn || presets.builtIn.length === 0) {
           actions.setBuiltIn(loadPresets());
+        }
+
+        const presetsParam = searchParams.get('presets');
+        if (presetsParam) {
+          const decodedPresets = decodePresetsFromURL(presetsParam);
+          if (decodedPresets && decodedPresets.length > 0) {
+            const currentSaved = useVibeStore.getState().presets.saved;
+            const newPresets = decodedPresets.filter(
+              p => !currentSaved.some(s => s.id === p.id)
+            );
+
+            if (newPresets.length > 0) {
+              useVibeStore.setState(state => ({
+                presets: {
+                  ...state.presets,
+                  saved: [...newPresets, ...state.presets.saved]
+                }
+              }));
+
+              toast({
+                title: `Imported ${newPresets.length} presets from shared link`
+              });
+            }
+          }
         }
       } catch (error) {
         console.error('Failed to initialize:', error);

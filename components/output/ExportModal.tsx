@@ -32,7 +32,7 @@ import { toast } from '@/components/ui/use-toast';
 interface ExportModalProps {
   isOpen: boolean;
   onClose: () => void;
-  defaultComponent?: 'button' | 'card';
+  defaultComponent?: 'button' | 'card' | 'input' | 'badge' | 'avatar' | 'checkbox';
 }
 
 const formatInfo: Record<ExportFormat, { icon: React.ReactNode; label: string; description: string }> = {
@@ -65,13 +65,33 @@ const formatInfo: Record<ExportFormat, { icon: React.ReactNode; label: string; d
     icon: <FileJson className="h-4 w-4" />,
     label: 'JSON',
     description: 'Design tokens as JSON'
+  },
+  figma: {
+    icon: <FileJson className="h-4 w-4" />,
+    label: 'Figma',
+    description: 'Figma design tokens format'
+  },
+  styleDictionary: {
+    icon: <FileJson className="h-4 w-4" />,
+    label: 'Style Dictionary',
+    description: 'Style Dictionary token format'
+  },
+  styledComponents: {
+    icon: <Code2 className="h-4 w-4" />,
+    label: 'Styled Components',
+    description: 'Styled Components theme object'
+  },
+  emotion: {
+    icon: <Code2 className="h-4 w-4" />,
+    label: 'Emotion',
+    description: 'Emotion CSS-in-JS theme'
   }
 };
 
 export function ExportModal({ isOpen, onClose, defaultComponent = 'button' }: ExportModalProps) {
   const tokens = useVibeStore(state => state.tokens);
   const [activeFormat, setActiveFormat] = useState<ExportFormat>('react');
-  const [componentType, setComponentType] = useState<'button' | 'card'>(defaultComponent);
+  const [componentType, setComponentType] = useState<'button' | 'card' | 'input' | 'badge' | 'avatar' | 'checkbox'>(defaultComponent);
   const [showFormatMenu, setShowFormatMenu] = useState(false);
   const [copiedFormat, setCopiedFormat] = useState<ExportFormat | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -88,7 +108,9 @@ export function ExportModal({ isOpen, onClose, defaultComponent = 'button' }: Ex
     }
   }, [tokens, activeFormat, componentType]);
 
-  const allExports = useMemo(() => generateAllExports(tokens, componentType), [tokens, componentType]);
+  const allExports = useMemo(() => {
+    return generateAllExports(tokens, componentType);
+  }, [tokens, componentType]);
 
   useEffect(() => {
     if (copiedFormat) {
@@ -217,7 +239,7 @@ export function ExportModal({ isOpen, onClose, defaultComponent = 'button' }: Ex
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium text-muted-foreground">Component:</span>
               <div className="flex rounded-md bg-muted p-1">
-                {(['button', 'card'] as const).map(type => (
+                {(['button', 'card', 'input', 'badge', 'avatar', 'checkbox'] as const).map(type => (
                   <button
                     key={type}
                     onClick={() => setComponentType(type)}

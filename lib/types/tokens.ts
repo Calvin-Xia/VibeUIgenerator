@@ -92,6 +92,45 @@ export interface CardTokens {
   borderAlpha: number;
 }
 
+export interface InputTokens {
+  height: number;
+  radius: number;
+  borderWidth: number;
+  focusRingWidth: number;
+  focusRingOffset: number;
+  placeholderOpacity: number;
+}
+
+export interface BadgeTokens {
+  radius: number;
+  paddingX: number;
+  paddingY: number;
+  fontSize: number;
+  fontWeight: number;
+  variant: 'solid' | 'outline' | 'soft';
+  statusColors?: {
+    success: string;
+    error: string;
+    warning: string;
+  };
+}
+
+export interface AvatarTokens {
+  size: number;
+  radius: number;
+  borderWidth: number;
+  fallbackBg: string;
+  fallbackText: string;
+}
+
+export interface CheckboxTokens {
+  size: number;
+  radius: number;
+  borderWidth: number;
+  checkSize: number;
+  indicatorStyle: 'check' | 'dot';
+}
+
 export interface VibeTokens {
   schemaVersion: string;
   theme: ThemeTokens;
@@ -99,6 +138,10 @@ export interface VibeTokens {
   interaction: InteractionTokens;
   button: ButtonTokens;
   card: CardTokens;
+  input: InputTokens;
+  badge: BadgeTokens;
+  avatar: AvatarTokens;
+  checkbox: CheckboxTokens;
 }
 
 export interface Preset {
@@ -112,4 +155,4 @@ export interface Preset {
   createdAt?: number;
 }
 
-export type ComponentType = 'button' | 'card';
+export type ComponentType = 'button' | 'card' | 'input' | 'badge' | 'avatar' | 'checkbox';

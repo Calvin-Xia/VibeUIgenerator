@@ -8,13 +8,17 @@ import {
   generateHTMLSnippets,
   generateReactComponent,
   generateVueComponent,
-  generateJSONTokens
+  generateJSONTokens,
+  generateFigmaTokens,
+  generateStyleDictionary,
+  generateStyledComponents,
+  generateEmotion
 } from '@/lib/generator/export';
 import { CodeBlock } from './CodeBlock';
 import { CodeTabs } from './CodeTabs';
 import { ExportButtons } from './ExportButtons';
 
-type OutputTab = 'css' | 'tailwind' | 'html' | 'react' | 'vue' | 'json';
+type OutputTab = 'css' | 'tailwind' | 'html' | 'react' | 'vue' | 'json' | 'figma' | 'styleDictionary' | 'styledComponents' | 'emotion';
 
 
 export function OutputPanel() {
@@ -22,12 +26,18 @@ export function OutputPanel() {
   const selectedComponent = useVibeStore(state => state.ui.selectedComponent);
   const [activeTab, setActiveTab] = useState<OutputTab>('css');
 
+  const componentType = selectedComponent;
+
   const cssData = useMemo(() => generateCSSVariables(tokens), [tokens]);
   const tailwindData = useMemo(() => generateTailwindConfig(tokens), [tokens]);
-  const htmlData = useMemo(() => generateHTMLSnippets(tokens, selectedComponent), [tokens, selectedComponent]);
-  const reactData = useMemo(() => generateReactComponent(tokens, selectedComponent), [tokens, selectedComponent]);
-  const vueData = useMemo(() => generateVueComponent(tokens, selectedComponent), [tokens, selectedComponent]);
+  const htmlData = useMemo(() => generateHTMLSnippets(tokens, componentType), [tokens, componentType]);
+  const reactData = useMemo(() => generateReactComponent(tokens, componentType), [tokens, componentType]);
+  const vueData = useMemo(() => generateVueComponent(tokens, componentType), [tokens, componentType]);
   const jsonData = useMemo(() => generateJSONTokens(tokens), [tokens]);
+  const figmaData = useMemo(() => generateFigmaTokens(tokens), [tokens]);
+  const styleDictionaryData = useMemo(() => generateStyleDictionary(tokens), [tokens]);
+  const styledComponentsData = useMemo(() => generateStyledComponents(tokens), [tokens]);
+  const emotionData = useMemo(() => generateEmotion(tokens), [tokens]);
 
   const getCode = () => {
     switch (activeTab) {
@@ -37,6 +47,10 @@ export function OutputPanel() {
       case 'react': return reactData.code;
       case 'vue': return vueData.code;
       case 'json': return jsonData.code;
+      case 'figma': return figmaData.code;
+      case 'styleDictionary': return styleDictionaryData.code;
+      case 'styledComponents': return styledComponentsData.code;
+      case 'emotion': return emotionData.code;
       default: return cssData.code;
     }
   };
@@ -49,6 +63,10 @@ export function OutputPanel() {
       case 'react': return 'typescript';
       case 'vue': return 'vue';
       case 'json': return 'json';
+      case 'figma': return 'json';
+      case 'styleDictionary': return 'json';
+      case 'styledComponents': return 'typescript';
+      case 'emotion': return 'typescript';
       default: return 'css';
     }
   };
@@ -61,6 +79,10 @@ export function OutputPanel() {
       case 'react': return reactData.filename;
       case 'vue': return vueData.filename;
       case 'json': return jsonData.filename;
+      case 'figma': return figmaData.filename;
+      case 'styleDictionary': return styleDictionaryData.filename;
+      case 'styledComponents': return styledComponentsData.filename;
+      case 'emotion': return emotionData.filename;
       default: return cssData.filename;
     }
   };

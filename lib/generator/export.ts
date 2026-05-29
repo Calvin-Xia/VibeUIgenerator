@@ -1,9 +1,16 @@
-import { VibeTokens } from '@/lib/types/tokens';
+import { VibeTokens, ComponentType } from '@/lib/types/tokens';
 import { hexToRgb, withOpacity } from './color';
 import { resolveInteractionMotion } from './interaction';
 import { shadowFromElevation } from './shadow';
+import { generateFigmaTokens } from './figma';
+import { generateStyleDictionary } from './styleDictionary';
+import { generateStyledComponents, generateEmotion } from './cssInJs';
 
-export type ExportFormat = 'react' | 'vue' | 'html' | 'tailwind' | 'css' | 'json';
+export { generateFigmaTokens } from './figma';
+export { generateStyleDictionary } from './styleDictionary';
+export { generateStyledComponents, generateEmotion } from './cssInJs';
+
+export type ExportFormat = 'react' | 'vue' | 'html' | 'tailwind' | 'css' | 'json' | 'figma' | 'styleDictionary' | 'styledComponents' | 'emotion';
 
 export interface ExportResult {
   code: string;
@@ -270,10 +277,285 @@ export default VibeCard;
   };
 }
 
-export function generateReactComponent(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
-  return componentType === 'button'
-    ? generateReactButtonComponent(tokens)
-    : generateReactCardComponent(tokens);
+function generateReactInputComponent(tokens: VibeTokens): ExportResult {
+  const { theme, effects, interaction, input } = tokens;
+
+  const code = `'use client';
+
+import React, { useState } from 'react';
+
+export interface VibeInputProps {
+  placeholder?: string;
+  disabled?: boolean;
+  value?: string;
+  onChange?: (value: string) => void;
+}
+
+export function VibeInput({
+  placeholder = 'Enter text...',
+  disabled = false,
+  value,
+  onChange
+}: VibeInputProps) {
+  const [isFocused, setIsFocused] = useState(false);
+
+  const baseStyle: React.CSSProperties = {
+    height: ${input.height},
+    padding: '${theme.spacing.paddingY}px ${theme.spacing.paddingX}px',
+    fontFamily: '${theme.typography.fontFamily}',
+    fontSize: ${theme.typography.fontSize},
+    fontWeight: ${theme.typography.fontWeight},
+    letterSpacing: '${theme.typography.letterSpacing}em',
+    borderRadius: ${input.radius}px,
+    border: '${input.borderWidth}px solid ${withOpacity(theme.palette.border, effects.border.opacity)}',
+    backgroundColor: '${theme.palette.surface}',
+    color: '${theme.palette.text}',
+    outline: 'none',
+    transition: 'all ${interaction.transition.duration}ms ${interaction.transition.easing}',
+    boxShadow: isFocused
+      ? '0 0 0 ${input.focusRingWidth + input.focusRingOffset}px ${withOpacity(theme.palette.accent, 0.25)}'
+      : '0 0 0 ${input.focusRingOffset}px ${withOpacity(theme.palette.accent, 0)}',
+    borderColor: isFocused ? '${theme.palette.accent}' : '${withOpacity(theme.palette.border, effects.border.opacity)}',
+    width: '100%',
+    boxSizing: 'border-box' as const,
+    opacity: disabled ? 0.5 : 1,
+    cursor: disabled ? 'not-allowed' : 'text'
+  };
+
+  return (
+    <input
+      style={baseStyle}
+      placeholder={placeholder}
+      disabled={disabled}
+      value={value}
+      onChange={(e) => onChange?.(e.target.value)}
+      onFocus={() => setIsFocused(true)}
+      onBlur={() => setIsFocused(false)}
+    />
+  );
+}
+
+export default VibeInput;
+`;
+
+  return {
+    code,
+    filename: 'vibeinput.tsx',
+    language: 'typescript'
+  };
+}
+
+function generateReactBadgeComponent(tokens: VibeTokens): ExportResult {
+  const { theme, badge } = tokens;
+
+  const code = `'use client';
+
+import React from 'react';
+
+export interface VibeBadgeProps {
+  variant?: 'solid' | 'outline' | 'soft';
+  children?: React.ReactNode;
+}
+
+export function VibeBadge({
+  variant = '${badge.variant}',
+  children = 'Badge'
+}: VibeBadgeProps) {
+  const baseStyle: React.CSSProperties = {
+    display: 'inline-flex',
+    alignItems: 'center',
+    padding: '${badge.paddingY}px ${badge.paddingX}px',
+    fontFamily: '${theme.typography.fontFamily}',
+    fontSize: ${badge.fontSize},
+    fontWeight: ${badge.fontWeight},
+    borderRadius: ${badge.radius}px,
+    lineHeight: 1
+  };
+
+  const variantStyles: Record<string, React.CSSProperties> = {
+    solid: {
+      backgroundColor: '${theme.palette.accent}',
+      color: '#ffffff'
+    },
+    outline: {
+      backgroundColor: 'transparent',
+      border: '1px solid ${theme.palette.accent}',
+      color: '${theme.palette.accent}'
+    },
+    soft: {
+      backgroundColor: '${withOpacity(theme.palette.accent, 0.1)}',
+      color: '${theme.palette.accent}'
+    }
+  };
+
+  return (
+    <span style={{ ...baseStyle, ...variantStyles[variant] }}>
+      {children}
+    </span>
+  );
+}
+
+export default VibeBadge;
+`;
+
+  return {
+    code,
+    filename: 'vibebadge.tsx',
+    language: 'typescript'
+  };
+}
+
+function generateReactAvatarComponent(tokens: VibeTokens): ExportResult {
+  const { theme, avatar } = tokens;
+
+  const code = `'use client';
+
+import React from 'react';
+
+export interface VibeAvatarProps {
+  src?: string;
+  alt?: string;
+  fallback?: string;
+}
+
+export function VibeAvatar({
+  src,
+  alt = 'Avatar',
+  fallback = 'AV'
+}: VibeAvatarProps) {
+  const containerStyle: React.CSSProperties = {
+    width: ${avatar.size},
+    height: ${avatar.size},
+    borderRadius: '${avatar.radius}',
+    border: '${avatar.borderWidth}px solid ${theme.palette.border}',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '${avatar.fallbackBg}'
+  };
+
+  const fallbackStyle: React.CSSProperties = {
+    color: '${avatar.fallbackText}',
+    fontSize: ${Math.round(avatar.size * 0.4)},
+    fontWeight: 600,
+    fontFamily: '${theme.typography.fontFamily}'
+  };
+
+  return (
+    <div style={containerStyle}>
+      {src ? (
+        <img src={src} alt={alt} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+      ) : (
+        <span style={fallbackStyle}>{fallback}</span>
+      )}
+    </div>
+  );
+}
+
+export default VibeAvatar;
+`;
+
+  return {
+    code,
+    filename: 'vibeavatar.tsx',
+    language: 'typescript'
+  };
+}
+
+function generateReactCheckboxComponent(tokens: VibeTokens): ExportResult {
+  const { theme, checkbox } = tokens;
+
+  const code = `'use client';
+
+import React, { useState } from 'react';
+
+export interface VibeCheckboxProps {
+  checked?: boolean;
+  disabled?: boolean;
+  onChange?: (checked: boolean) => void;
+  label?: string;
+}
+
+export function VibeCheckbox({
+  checked: controlledChecked,
+  disabled = false,
+  onChange,
+  label = 'Checkbox'
+}: VibeCheckboxProps) {
+  const [internalChecked, setInternalChecked] = useState(false);
+  const isChecked = controlledChecked !== undefined ? controlledChecked : internalChecked;
+
+  const handleClick = () => {
+    if (disabled) return;
+    const newValue = !isChecked;
+    setInternalChecked(newValue);
+    onChange?.(newValue);
+  };
+
+  const boxStyle: React.CSSProperties = {
+    width: ${checkbox.size},
+    height: ${checkbox.size},
+    borderRadius: ${checkbox.radius}px,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: disabled ? 'not-allowed' : 'pointer',
+    transition: 'all 150ms ease',
+    border: '${checkbox.borderWidth}px solid ' + (isChecked ? '${theme.palette.accent}' : '${theme.palette.border}'),
+    backgroundColor: isChecked ? '${theme.palette.accent}' : 'transparent',
+    opacity: disabled ? 0.5 : 1,
+    flexShrink: 0
+  };
+
+  const indicatorStyle: React.CSSProperties = {
+    width: ${checkbox.checkSize},
+    height: ${checkbox.checkSize},
+    color: '#ffffff'
+  };
+
+  const labelStyle: React.CSSProperties = {
+    fontFamily: '${theme.typography.fontFamily}',
+    fontSize: ${theme.typography.fontSize},
+    color: '${theme.palette.text}',
+    opacity: disabled ? 0.5 : 1,
+    marginLeft: '8px'
+  };
+
+  return (
+    <div style={{ display: 'flex', alignItems: 'center' }} onClick={handleClick}>
+      <div style={boxStyle}>
+        {isChecked && (
+          '${checkbox.indicatorStyle === 'check'
+            ? `<svg style={indicatorStyle} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`
+            : `<div style={{ ...indicatorStyle, backgroundColor: '#ffffff', borderRadius: '50%' }} />`}'
+        )}
+      </div>
+      <span style={labelStyle}>{label}</span>
+    </div>
+  );
+}
+
+export default VibeCheckbox;
+`;
+
+  return {
+    code,
+    filename: 'vibecheckbox.tsx',
+    language: 'typescript'
+  };
+}
+
+export function generateReactComponent(tokens: VibeTokens, componentType: ComponentType = 'button'): ExportResult {
+  switch (componentType) {
+    case 'button': return generateReactButtonComponent(tokens);
+    case 'card': return generateReactCardComponent(tokens);
+    case 'input': return generateReactInputComponent(tokens);
+    case 'badge': return generateReactBadgeComponent(tokens);
+    case 'avatar': return generateReactAvatarComponent(tokens);
+    case 'checkbox': return generateReactCheckboxComponent(tokens);
+    default: return generateReactButtonComponent(tokens);
+  }
 }
 
 function generateVueButtonComponent(tokens: VibeTokens): ExportResult {
@@ -411,10 +693,274 @@ const baseStyles = computed(() => ({
   };
 }
 
-export function generateVueComponent(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
-  return componentType === 'button'
-    ? generateVueButtonComponent(tokens)
-    : generateVueCardComponent(tokens);
+function generateVueInputComponent(tokens: VibeTokens): ExportResult {
+  const { theme, effects, interaction, input } = tokens;
+
+  const code = `<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+interface Props {
+  placeholder?: string;
+  disabled?: boolean;
+  modelValue?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  placeholder: 'Enter text...',
+  disabled: false,
+  modelValue: ''
+});
+
+const emit = defineEmits<{
+  'update:modelValue': [value: string];
+}>();
+
+const isFocused = ref(false);
+
+const baseStyles = computed(() => ({
+  height: '${input.height}px',
+  padding: '${theme.spacing.paddingY}px ${theme.spacing.paddingX}px',
+  fontFamily: '${theme.typography.fontFamily}',
+  fontSize: '${theme.typography.fontSize}px',
+  fontWeight: ${theme.typography.fontWeight},
+  letterSpacing: '${theme.typography.letterSpacing}em',
+  borderRadius: '${input.radius}px',
+  border: '${input.borderWidth}px solid ' + (isFocused.value ? '${theme.palette.accent}' : '${withOpacity(theme.palette.border, effects.border.opacity)}'),
+  backgroundColor: '${theme.palette.surface}',
+  color: '${theme.palette.text}',
+  outline: 'none',
+  transition: 'all ${interaction.transition.duration}ms ${interaction.transition.easing}',
+  boxShadow: isFocused.value
+    ? '0 0 0 ${input.focusRingWidth + input.focusRingOffset}px ${withOpacity(theme.palette.accent, 0.25)}'
+    : '0 0 0 ${input.focusRingOffset}px ${withOpacity(theme.palette.accent, 0)}',
+  width: '100%',
+  boxSizing: 'border-box' as const,
+  opacity: props.disabled ? 0.5 : 1,
+  cursor: props.disabled ? 'not-allowed' : 'text'
+}));
+
+function handleInput(event: Event) {
+  const target = event.target as HTMLInputElement;
+  emit('update:modelValue', target.value);
+}
+</script>
+
+<template>
+  <input
+    :style="baseStyles"
+    :placeholder="placeholder"
+    :disabled="disabled"
+    :value="modelValue"
+    @input="handleInput"
+    @focus="isFocused = true"
+    @blur="isFocused = false"
+  />
+</template>
+`;
+
+  return {
+    code,
+    filename: 'vibeinput.vue',
+    language: 'vue'
+  };
+}
+
+function generateVueBadgeComponent(tokens: VibeTokens): ExportResult {
+  const { theme, badge } = tokens;
+
+  const code = `<script setup lang="ts">
+import { computed } from 'vue';
+
+interface Props {
+  variant?: 'solid' | 'outline' | 'soft';
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  variant: '${badge.variant}'
+});
+
+const baseStyles = computed(() => ({
+  display: 'inline-flex' as const,
+  alignItems: 'center' as const,
+  padding: '${badge.paddingY}px ${badge.paddingX}px',
+  fontFamily: '${theme.typography.fontFamily}',
+  fontSize: '${badge.fontSize}px',
+  fontWeight: ${badge.fontWeight},
+  borderRadius: '${badge.radius}px',
+  lineHeight: 1,
+  ...(props.variant === 'solid' ? {
+    backgroundColor: '${theme.palette.accent}',
+    color: '#ffffff'
+  } : props.variant === 'outline' ? {
+    backgroundColor: 'transparent',
+    border: '1px solid ${theme.palette.accent}',
+    color: '${theme.palette.accent}'
+  } : {
+    backgroundColor: '${withOpacity(theme.palette.accent, 0.1)}',
+    color: '${theme.palette.accent}'
+  })
+}));
+</script>
+
+<template>
+  <span :style="baseStyles">
+    <slot>Badge</slot>
+  </span>
+</template>
+`;
+
+  return {
+    code,
+    filename: 'vibebadge.vue',
+    language: 'vue'
+  };
+}
+
+function generateVueAvatarComponent(tokens: VibeTokens): ExportResult {
+  const { theme, avatar } = tokens;
+
+  const code = `<script setup lang="ts">
+interface Props {
+  src?: string;
+  alt?: string;
+  fallback?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  alt: 'Avatar',
+  fallback: 'AV'
+});
+
+const containerStyle = {
+  width: '${avatar.size}px',
+  height: '${avatar.size}px',
+  borderRadius: '${avatar.radius}',
+  border: '${avatar.borderWidth}px solid ${theme.palette.border}',
+  overflow: 'hidden',
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: '${avatar.fallbackBg}'
+};
+
+const fallbackStyle = {
+  color: '${avatar.fallbackText}',
+  fontSize: '${Math.round(avatar.size * 0.4)}px',
+  fontWeight: 600,
+  fontFamily: '${theme.typography.fontFamily}'
+};
+
+const imageStyle = {
+  width: '100%',
+  height: '100%',
+  objectFit: 'cover' as const
+};
+</script>
+
+<template>
+  <div :style="containerStyle">
+    <img v-if="src" :src="src" :alt="alt" :style="imageStyle" />
+    <span v-else :style="fallbackStyle">{{ fallback }}</span>
+  </div>
+</template>
+`;
+
+  return {
+    code,
+    filename: 'vibeavatar.vue',
+    language: 'vue'
+  };
+}
+
+function generateVueCheckboxComponent(tokens: VibeTokens): ExportResult {
+  const { theme, checkbox } = tokens;
+
+  const code = `<script setup lang="ts">
+import { ref, computed } from 'vue';
+
+interface Props {
+  modelValue?: boolean;
+  disabled?: boolean;
+  label?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: false,
+  disabled: false,
+  label: 'Checkbox'
+});
+
+const emit = defineEmits<{
+  'update:modelValue': [value: boolean];
+}>();
+
+const isChecked = computed(() => props.modelValue);
+
+const boxStyle = computed(() => ({
+  width: '${checkbox.size}px',
+  height: '${checkbox.size}px',
+  borderRadius: '${checkbox.radius}px',
+  display: 'flex' as const,
+  alignItems: 'center' as const,
+  justifyContent: 'center' as const,
+  cursor: props.disabled ? 'not-allowed' : 'pointer',
+  transition: 'all 150ms ease',
+  border: '${checkbox.borderWidth}px solid ' + (isChecked.value ? '${theme.palette.accent}' : '${theme.palette.border}'),
+  backgroundColor: isChecked.value ? '${theme.palette.accent}' : 'transparent',
+  opacity: props.disabled ? 0.5 : 1,
+  flexShrink: 0
+}));
+
+const indicatorStyle = {
+  width: '${checkbox.checkSize}px',
+  height: '${checkbox.checkSize}px',
+  color: '#ffffff'
+};
+
+const labelStyle = computed(() => ({
+  fontFamily: '${theme.typography.fontFamily}',
+  fontSize: '${theme.typography.fontSize}px',
+  color: '${theme.palette.text}',
+  opacity: props.disabled ? 0.5 : 1,
+  marginLeft: '8px'
+}));
+
+function handleClick() {
+  if (!props.disabled) {
+    emit('update:modelValue', !isChecked.value);
+  }
+}
+</script>
+
+<template>
+  <div style="display: flex; align-items: center" @click="handleClick">
+    <div :style="boxStyle">
+      ${checkbox.indicatorStyle === 'check'
+        ? `<svg v-if="isChecked" :style="indicatorStyle" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>`
+        : `<div v-if="isChecked" :style="{ ...indicatorStyle, backgroundColor: '#ffffff', borderRadius: '50%' }" />`}
+    </div>
+    <span :style="labelStyle">{{ label }}</span>
+  </div>
+</template>
+`;
+
+  return {
+    code,
+    filename: 'vibecheckbox.vue',
+    language: 'vue'
+  };
+}
+
+export function generateVueComponent(tokens: VibeTokens, componentType: ComponentType = 'button'): ExportResult {
+  switch (componentType) {
+    case 'button': return generateVueButtonComponent(tokens);
+    case 'card': return generateVueCardComponent(tokens);
+    case 'input': return generateVueInputComponent(tokens);
+    case 'badge': return generateVueBadgeComponent(tokens);
+    case 'avatar': return generateVueAvatarComponent(tokens);
+    case 'checkbox': return generateVueCheckboxComponent(tokens);
+    default: return generateVueButtonComponent(tokens);
+  }
 }
 
 function generateHTMLButtonSnippet(tokens: VibeTokens): ExportResult {
@@ -551,10 +1097,229 @@ ${effects.glow.enabled ? `
   };
 }
 
-export function generateHTMLSnippets(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): ExportResult {
-  return componentType === 'button'
-    ? generateHTMLButtonSnippet(tokens)
-    : generateHTMLCardSnippet(tokens);
+function generateHTMLInputSnippet(tokens: VibeTokens): ExportResult {
+  const { theme, effects, interaction, input } = tokens;
+
+  const code = `<!-- VibeUI Input - Generated by VibeUI Generator -->
+
+<style>
+.vibe-input {
+  height: ${input.height}px;
+  padding: ${theme.spacing.paddingY}px ${theme.spacing.paddingX}px;
+  font-family: ${theme.typography.fontFamily};
+  font-size: ${theme.typography.fontSize}px;
+  font-weight: ${theme.typography.fontWeight};
+  letter-spacing: ${theme.typography.letterSpacing}em;
+  border-radius: ${input.radius}px;
+  border: ${input.borderWidth}px solid ${withOpacity(theme.palette.border, effects.border.opacity)};
+  background-color: ${theme.palette.surface};
+  color: ${theme.palette.text};
+  outline: none;
+  transition: all ${interaction.transition.duration}ms ${interaction.transition.easing};
+  box-shadow: 0 0 0 ${input.focusRingOffset}px ${withOpacity(theme.palette.accent, 0)};
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.vibe-input:focus {
+  border-color: ${theme.palette.accent};
+  box-shadow: 0 0 0 ${input.focusRingWidth + input.focusRingOffset}px ${withOpacity(theme.palette.accent, 0.25)};
+}
+
+.vibe-input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vibe-input::placeholder {
+  color: ${withOpacity(theme.palette.mutedText, input.placeholderOpacity)};
+}
+</style>
+
+<!-- Input HTML -->
+<input class="vibe-input" type="text" placeholder="Enter text..." />
+`;
+
+  return {
+    code,
+    filename: 'vibe-input.html',
+    language: 'html'
+  };
+}
+
+function generateHTMLBadgeSnippet(tokens: VibeTokens): ExportResult {
+  const { theme, badge } = tokens;
+
+  const code = `<!-- VibeUI Badge - Generated by VibeUI Generator -->
+
+<style>
+.vibe-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: ${badge.paddingY}px ${badge.paddingX}px;
+  font-family: ${theme.typography.fontFamily};
+  font-size: ${badge.fontSize}px;
+  font-weight: ${badge.fontWeight};
+  border-radius: ${badge.radius}px;
+  line-height: 1;
+}
+
+.vibe-badge--solid {
+  background-color: ${theme.palette.accent};
+  color: #ffffff;
+}
+
+.vibe-badge--outline {
+  background-color: transparent;
+  border: 1px solid ${theme.palette.accent};
+  color: ${theme.palette.accent};
+}
+
+.vibe-badge--soft {
+  background-color: ${withOpacity(theme.palette.accent, 0.1)};
+  color: ${theme.palette.accent};
+}
+</style>
+
+<!-- Badge HTML -->
+<span class="vibe-badge vibe-badge--${badge.variant}">
+  Badge
+</span>
+`;
+
+  return {
+    code,
+    filename: 'vibe-badge.html',
+    language: 'html'
+  };
+}
+
+function generateHTMLAvatarSnippet(tokens: VibeTokens): ExportResult {
+  const { theme, avatar } = tokens;
+
+  const code = `<!-- VibeUI Avatar - Generated by VibeUI Generator -->
+
+<style>
+.vibe-avatar {
+  width: ${avatar.size}px;
+  height: ${avatar.size}px;
+  border-radius: ${avatar.radius};
+  border: ${avatar.borderWidth}px solid ${theme.palette.border};
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: ${avatar.fallbackBg};
+}
+
+.vibe-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vibe-avatar__fallback {
+  color: ${avatar.fallbackText};
+  font-size: ${Math.round(avatar.size * 0.4)}px;
+  font-weight: 600;
+  font-family: ${theme.typography.fontFamily};
+}
+</style>
+
+<!-- Avatar HTML -->
+<div class="vibe-avatar">
+  <span class="vibe-avatar__fallback">AV</span>
+</div>
+`;
+
+  return {
+    code,
+    filename: 'vibe-avatar.html',
+    language: 'html'
+  };
+}
+
+function generateHTMLCheckboxSnippet(tokens: VibeTokens): ExportResult {
+  const { theme, checkbox } = tokens;
+
+  const code = `<!-- VibeUI Checkbox - Generated by VibeUI Generator -->
+
+<style>
+.vibe-checkbox {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+}
+
+.vibe-checkbox__box {
+  width: ${checkbox.size}px;
+  height: ${checkbox.size}px;
+  border-radius: ${checkbox.radius}px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 150ms ease;
+  border: ${checkbox.borderWidth}px solid ${theme.palette.border};
+  background-color: transparent;
+  flex-shrink: 0;
+}
+
+.vibe-checkbox__box--checked {
+  border-color: ${theme.palette.accent};
+  background-color: ${theme.palette.accent};
+}
+
+.vibe-checkbox__box--disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vibe-checkbox__indicator {
+  width: ${checkbox.checkSize}px;
+  height: ${checkbox.checkSize}px;
+  color: #ffffff;
+}
+
+.vibe-checkbox__label {
+  font-family: ${theme.typography.fontFamily};
+  font-size: ${theme.typography.fontSize}px;
+  color: ${theme.palette.text};
+  margin-left: 8px;
+}
+
+.vibe-checkbox:disabled .vibe-checkbox__label {
+  opacity: 0.5;
+}
+</style>
+
+<!-- Checkbox HTML -->
+<label class="vibe-checkbox">
+  <div class="vibe-checkbox__box vibe-checkbox__box--checked">
+    ${checkbox.indicatorStyle === 'check'
+      ? '<svg class="vibe-checkbox__indicator" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12" /></svg>'
+      : '<div class="vibe-checkbox__indicator" style="background-color: #ffffff; border-radius: 50%;"></div>'}
+  </div>
+  <span class="vibe-checkbox__label">Checkbox</span>
+</label>
+`;
+
+  return {
+    code,
+    filename: 'vibe-checkbox.html',
+    language: 'html'
+  };
+}
+
+export function generateHTMLSnippets(tokens: VibeTokens, componentType: ComponentType = 'button'): ExportResult {
+  switch (componentType) {
+    case 'button': return generateHTMLButtonSnippet(tokens);
+    case 'card': return generateHTMLCardSnippet(tokens);
+    case 'input': return generateHTMLInputSnippet(tokens);
+    case 'badge': return generateHTMLBadgeSnippet(tokens);
+    case 'avatar': return generateHTMLAvatarSnippet(tokens);
+    case 'checkbox': return generateHTMLCheckboxSnippet(tokens);
+    default: return generateHTMLButtonSnippet(tokens);
+  }
 }
 
 export function generateTailwindConfig(tokens: VibeTokens): ExportResult {
@@ -715,13 +1480,17 @@ export function generateJSONTokens(tokens: VibeTokens): ExportResult {
   };
 }
 
-export function generateAllExports(tokens: VibeTokens, componentType: 'button' | 'card' = 'button'): Record<ExportFormat, ExportResult> {
+export function generateAllExports(tokens: VibeTokens, componentType: ComponentType = 'button'): Record<ExportFormat, ExportResult> {
   return {
     react: generateReactComponent(tokens, componentType),
     vue: generateVueComponent(tokens, componentType),
     html: generateHTMLSnippets(tokens, componentType),
     tailwind: generateTailwindConfig(tokens),
     css: generateCSSVariables(tokens),
-    json: generateJSONTokens(tokens)
+    json: generateJSONTokens(tokens),
+    figma: generateFigmaTokens(tokens),
+    styleDictionary: generateStyleDictionary(tokens),
+    styledComponents: generateStyledComponents(tokens),
+    emotion: generateEmotion(tokens)
   };
 }

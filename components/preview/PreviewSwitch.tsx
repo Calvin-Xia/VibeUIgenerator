@@ -1,7 +1,7 @@
 'use client';
 
 import { useVibeStore, useActions } from '@/lib/store/vibeStore';
-import { MousePointer2, Layout } from 'lucide-react';
+import { MousePointer2, Layout, Type, Tag, User, CheckSquare } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function PreviewSwitch() {
@@ -10,7 +10,11 @@ export function PreviewSwitch() {
 
   const tabs = [
     { id: 'button' as const, label: 'Button', icon: MousePointer2 },
-    { id: 'card' as const, label: 'Card', icon: Layout }
+    { id: 'card' as const, label: 'Card', icon: Layout },
+    { id: 'input' as const, label: 'Input', icon: Type },
+    { id: 'badge' as const, label: 'Badge', icon: Tag },
+    { id: 'avatar' as const, label: 'Avatar', icon: User },
+    { id: 'checkbox' as const, label: 'Checkbox', icon: CheckSquare }
   ];
 
   return (
