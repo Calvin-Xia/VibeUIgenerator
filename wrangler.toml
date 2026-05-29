@@ -1,11 +1,7 @@
 name = "vibeui-generator"
-main = ".open-next/worker.js"
 compatibility_date = "2024-11-18"
 compatibility_flags = ["nodejs_compat", "global_fetch_strictly_public"]
-
-[assets]
-directory = ".open-next/assets"
-binding = "ASSETS"
+pages_build_output_dir = ".open-next/assets"
 
 [vars]
 NEXT_PUBLIC_APP_NAME = "VibeUI Generator"
