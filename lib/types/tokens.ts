@@ -113,9 +113,3 @@ export interface Preset {
 }
 
 export type ComponentType = 'button' | 'card';
-
-export interface CodeTab {
-  id: 'css-vars' | 'css' | 'tailwind' | 'html' | 'json';
-  label: string;
-  icon?: React.ReactNode;
-}

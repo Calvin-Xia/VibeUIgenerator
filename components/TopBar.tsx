@@ -1,9 +1,9 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVibeStore, createActions } from '@/lib/store/vibeStore';
+import { useVibeStore, useActions } from '@/lib/store/vibeStore';
 import { loadPresets, getPresetById } from '@/lib/presets/builtIn';
 import { toast } from '@/components/ui/use-toast';
 import { ExportModal } from '@/components/output/ExportModal';
@@ -24,13 +24,7 @@ import {
 export function TopBar() {
   const tokens = useVibeStore(state => state.tokens);
   const presets = useVibeStore(state => state.presets);
-  
-  const actions = useMemo(() => 
-    createActions(
-      (fn) => useVibeStore.setState(fn),
-      () => useVibeStore.getState()
-    ),
-  []);
+  const actions = useActions();
   
   const [showPresets, setShowPresets] = useState(false);
   const [showMobileMenu, setShowMobileMenu] = useState(false);

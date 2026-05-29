@@ -1,19 +1,12 @@
 'use client';
 
-import { useMemo } from 'react';
-import { useVibeStore, createActions } from '@/lib/store/vibeStore';
+import { useVibeStore, useActions } from '@/lib/store/vibeStore';
 import { MousePointer2, Layout } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 export function PreviewSwitch() {
   const selectedComponent = useVibeStore(state => state.ui.selectedComponent);
-  
-  const actions = useMemo(() => 
-    createActions(
-      (fn) => useVibeStore.setState(fn),
-      () => useVibeStore.getState()
-    ),
-  []);
+  const actions = useActions();
 
   const tabs = [
     { id: 'button' as const, label: 'Button', icon: MousePointer2 },

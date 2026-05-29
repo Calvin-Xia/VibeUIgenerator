@@ -1,10 +1,10 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AppShell } from '@/components/AppShell';
-import { useVibeStore, createActions } from '@/lib/store/vibeStore';
+import { useVibeStore, useActions } from '@/lib/store/vibeStore';
 import { decodeFromURL } from '@/lib/generator/normalize';
 import { loadPresets } from '@/lib/presets/builtIn';
 import { toast } from '@/components/ui/use-toast';
@@ -15,13 +15,7 @@ let lastInvalidShareWarning: string | null = null;
 function AppContent() {
   const searchParams = useSearchParams();
   const initialized = useVibeStore((state) => state.ui.initialized);
-
-  const actions = useMemo(() =>
-    createActions(
-      (fn) => useVibeStore.setState(fn),
-      () => useVibeStore.getState()
-    ),
-  []);
+  const actions = useActions();
 
   const [loading, setLoading] = useState(true);
 

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVibeStore, createActions } from '@/lib/store/vibeStore';
+import { useVibeStore, useActions } from '@/lib/store/vibeStore';
 import { toast } from '@/components/ui/use-toast';
 import { Heart, Trash2, Plus } from 'lucide-react';
 import {
@@ -144,13 +144,7 @@ function PresetCard({ preset, isFavorite, onApply, onToggleFavorite, onDelete, i
 export function PresetPanel() {
   const tokens = useVibeStore(state => state.tokens);
   const presets = useVibeStore(state => state.presets);
-  
-  const actions = useMemo(() => 
-    createActions(
-      (fn) => useVibeStore.setState(fn),
-      () => useVibeStore.getState()
-    ),
-  []);
+  const actions = useActions();
   
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [presetName, setPresetName] = useState('');
@@ -181,7 +175,7 @@ export function PresetPanel() {
   const filteredPresets = {
     'built-in': presets.builtIn || [],
     'saved': (presets.saved || []).filter(p => !(presets.favorites || []).includes(p.id)),
-    'favorites': ((presets.builtIn || []) as any[]).filter(p => (presets.favorites || []).includes(p.id)).concat(
+    'favorites': (presets.builtIn || []).filter(p => (presets.favorites || []).includes(p.id)).concat(
       (presets.saved || []).filter(p => (presets.favorites || []).includes(p.id))
     )
   };

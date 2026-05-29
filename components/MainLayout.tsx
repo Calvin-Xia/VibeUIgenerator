@@ -1,8 +1,7 @@
 'use client';
 
-import { useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useVibeStore, createActions } from '@/lib/store/vibeStore';
+import { useVibeStore, useActions } from '@/lib/store/vibeStore';
 import { InspectorPanel } from '@/components/inspector/InspectorPanel';
 import { PreviewCanvas } from '@/components/preview/PreviewCanvas';
 import { OutputPanel } from '@/components/output/OutputPanel';
@@ -14,13 +13,7 @@ export function MainLayout() {
   const ui = useVibeStore(state => state.ui);
   const initialized = useVibeStore(state => state.ui.initialized);
   const hydrated = useHydrated();
-  
-  const actions = useMemo(() => 
-    createActions(
-      (fn) => useVibeStore.setState(fn),
-      () => useVibeStore.getState()
-    ),
-  []);
+  const actions = useActions();
 
   const tabs = [
     { id: 'inspector', label: 'Inspector', icon: Settings2 },

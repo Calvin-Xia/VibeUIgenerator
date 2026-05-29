@@ -43,46 +43,6 @@ export function hexToRgb(color: string): { r: number; g: number; b: number } | n
   };
 }
 
-export function rgbToHex(r: number, g: number, b: number): string {
-  return '#' + [r, g, b].map((value) => {
-    const hex = Math.round(value).toString(16);
-    return hex.length === 1 ? '0' + hex : hex;
-  }).join('');
-}
-
-export function hexToHsla(color: string): { h: number; s: number; l: number; a: number } {
-  const rgb = hexToRgb(color);
-  if (!rgb) return { h: 0, s: 0, l: 0, a: 1 };
-
-  const r = rgb.r / 255;
-  const g = rgb.g / 255;
-  const b = rgb.b / 255;
-
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  let h = 0;
-  let s = 0;
-  const l = (max + min) / 2;
-
-  if (max !== min) {
-    const d = max - min;
-    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
-    switch (max) {
-      case r:
-        h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
-        break;
-      case g:
-        h = ((b - r) / d + 2) / 6;
-        break;
-      case b:
-        h = ((r - g) / d + 4) / 6;
-        break;
-    }
-  }
-
-  return { h: h * 360, s: s * 100, l: l * 100, a: 1 };
-}
-
 export function hslaToHex(h: number, s: number, l: number): string {
   s /= 100;
   l /= 100;
@@ -113,18 +73,6 @@ export function hslaToHex(h: number, s: number, l: number): string {
   };
 
   return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
-
-export function adjustLightness(color: string, amount: number): string {
-  const hsla = hexToHsla(color);
-  const newL = Math.max(0, Math.min(100, hsla.l + amount * 100));
-  return hslaToHex(hsla.h, hsla.s, newL);
-}
-
-export function adjustSaturation(color: string, amount: number): string {
-  const hsla = hexToHsla(color);
-  const newS = Math.max(0, Math.min(100, hsla.s + amount * 100));
-  return hslaToHex(hsla.h, newS, hsla.l);
 }
 
 export function withOpacity(color: string, opacity: number): string {
@@ -159,16 +107,4 @@ export function generateGradientStops(
   const sorted = [...stops].sort((a, b) => a.pos - b.pos);
   const gradientStops = sorted.map((stop) => `${stop.color} ${stop.pos}%`).join(', ');
   return `linear-gradient(${angle}deg, ${gradientStops})`;
-}
-
-export function interpolateColor(color1: string, color2: string, factor: number): string {
-  const rgb1 = hexToRgb(color1);
-  const rgb2 = hexToRgb(color2);
-  if (!rgb1 || !rgb2) return color1;
-
-  const r = rgb1.r + (rgb2.r - rgb1.r) * factor;
-  const g = rgb1.g + (rgb2.g - rgb1.g) * factor;
-  const b = rgb1.b + (rgb2.b - rgb1.b) * factor;
-
-  return rgbToHex(r, g, b);
 }

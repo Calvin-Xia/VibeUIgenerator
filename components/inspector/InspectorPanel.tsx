@@ -1,7 +1,7 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
-import { useVibeStore } from '@/lib/store/vibeStore';
+import { useEffect } from 'react';
+import { useVibeStore, useActions } from '@/lib/store/vibeStore';
 import { loadPresets } from '@/lib/presets/builtIn';
 import { ColorPickerRow } from './ColorPickerRow';
 import { SliderRow } from './SliderRow';
@@ -10,18 +10,11 @@ import { SelectRow } from './SelectRow';
 import { AccessibilityHint } from './AccessibilityHint';
 import { getContrastRating } from '@/lib/generator/color';
 import * as Accordion from '@radix-ui/react-accordion';
-import { createActions } from '@/lib/store/vibeStore';
 
 export function InspectorPanel() {
   const tokens = useVibeStore(state => state.tokens);
   const presets = useVibeStore(state => state.presets);
-
-  const actions = useMemo(() => 
-    createActions(
-      (fn) => useVibeStore.setState(fn),
-      () => useVibeStore.getState()
-    ),
-  []);
+  const actions = useActions();
 
   useEffect(() => {
     if (!presets.builtIn || presets.builtIn.length === 0) {

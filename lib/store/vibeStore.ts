@@ -1,7 +1,8 @@
+import { useMemo } from 'react';
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { VibeTokens, Preset, ComponentType } from '@/lib/types/tokens';
-import { hslaToHex, getContrastRating } from '@/lib/generator/color';
+import { hslaToHex } from '@/lib/generator/color';
 import {
   encodeToURL,
   importFromJSON,
@@ -122,7 +123,7 @@ interface PresetsState {
   favorites: string[];
 }
 
-interface StoreState {
+export interface StoreState {
   tokens: VibeTokens;
   ui: UIState;
   presets: PresetsState;
@@ -484,10 +485,13 @@ export const createActions = (set: (partial: Partial<StoreState> | ((state: Stor
   }
 });
 
-
-export function useContrastRatio() {
-  const tokens = useVibeStore((state) => state.tokens);
-  return getContrastRating(tokens.theme.palette.text, tokens.theme.palette.bg);
+export function useActions() {
+  return useMemo(() =>
+    createActions(
+      (fn) => useVibeStore.setState(fn),
+      () => useVibeStore.getState()
+    ),
+  []);
 }
 
 export { DEFAULT_TOKENS };

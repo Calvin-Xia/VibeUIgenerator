@@ -1,6 +1,7 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Preset, VibeTokens } from '@/lib/types/tokens';
+import type { StoreState } from '@/lib/store/vibeStore';
 
 const localStorageMock = {
   getItem: vi.fn(() => null),
@@ -17,26 +18,8 @@ function cloneTokens<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
 }
 
-type StoreSnapshot = {
-  tokens: VibeTokens;
-  ui: {
-    selectedComponent: 'button' | 'card';
-    showBackground: boolean;
-    showNoise: boolean;
-    showGrid: boolean;
-    activeTab: 'inspector' | 'preview' | 'code';
-    initialized: boolean;
-    version: number;
-  };
-  presets: {
-    builtIn: Preset[];
-    saved: Preset[];
-    favorites: string[];
-  };
-};
-
 function createTestHarness(initialTokens?: VibeTokens) {
-  let state: StoreSnapshot = {
+  let state: StoreState = {
     tokens: cloneTokens(initialTokens ?? storeModule.DEFAULT_TOKENS),
     ui: {
       selectedComponent: 'button',
@@ -54,7 +37,7 @@ function createTestHarness(initialTokens?: VibeTokens) {
     }
   };
 
-  const set = (partial: Partial<StoreSnapshot> | ((currentState: StoreSnapshot) => Partial<StoreSnapshot>)) => {
+  const set = (partial: Partial<StoreState> | ((currentState: StoreState) => Partial<StoreState>)) => {
     const nextState = typeof partial === 'function' ? partial(state) : partial;
     state = {
       ...state,
@@ -66,7 +49,7 @@ function createTestHarness(initialTokens?: VibeTokens) {
   };
 
   return {
-    actions: storeModule.createActions(set as never, () => state as never),
+    actions: storeModule.createActions(set, () => state),
     getState: () => state
   };
 }
