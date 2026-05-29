@@ -113,8 +113,6 @@ VibeUIgenerator/
 │       ├── toast.tsx               # 提示组件
 │       ├── toaster.tsx             # 提示容器组件
 │       └── use-toast.ts            # 提示钩子函数
-├── functions/                # Cloudflare Pages Functions
-│   └── [[path]].ts           # 通用路由捕获文件
 ├── lib/                      # 核心库和工具
 │   ├── generator/            # 样式生成引擎
 │   │   ├── color.ts               # 颜色工具函数
@@ -134,14 +132,15 @@ VibeUIgenerator/
 ├── eslint.config.mjs         # ESLint Flat Config 配置文件
 ├── .gitignore                # Git 忽略配置
 ├── .prettierrc               # Prettier 格式化配置
-├── DEPLOYMENT_CLOUDFLARE.md  # Cloudflare Pages 部署指南
+├── DEPLOYMENT_CLOUDFLARE.md  # Cloudflare Workers 部署指南
 ├── next.config.js            # Next.js 配置文件
+├── open-next.config.ts       # OpenNext 配置文件
 ├── package.json              # 项目依赖配置
 ├── postcss.config.js         # PostCSS 配置文件
 ├── README.md                 # 项目说明文档
 ├── tailwind.config.ts        # TailwindCSS 配置
 ├── tsconfig.json             # TypeScript 配置
-└── wrangler.toml             # Cloudflare 部署配置
+└── wrangler.toml             # Cloudflare Workers 部署配置
 ```
 
 ## 使用指南
@@ -361,11 +360,28 @@ JSON 格式导出完整的设计令牌数据，适合用于设计系统集成或
 
 ## 部署指南
 
-VibeUI Generator 支持多种部署方式，包括 Vercel（官方推荐）、Cloudflare Pages 和传统服务器部署。不同的部署方式适用于不同的场景和需求。
+VibeUI Generator 支持多种部署方式，包括 Cloudflare Workers（推荐）和 Vercel。不同的部署方式适用于不同的场景和需求。
 
-### Vercel 部署（推荐）
+### Cloudflare Workers 部署（推荐）
 
-Vercel 是 Next.js 的官方托管平台，提供最佳的性能和开发体验。部署流程简单快捷，支持自动预览部署和自定义域名。
+项目使用 OpenNext 适配器部署到 Cloudflare Workers，提供全球边缘网络加速。
+
+```bash
+# 1. 登录 Cloudflare
+npx wrangler login
+
+# 2. 构建
+npx @opennextjs/cloudflare build
+
+# 3. 部署
+npx wrangler deploy
+```
+
+详细部署指南请参考 DEPLOYMENT_CLOUDFLARE.md 文件。
+
+### Vercel 部署
+
+Vercel 是 Next.js 的官方托管平台，提供最佳的性能和开发体验。
 
 1. 将代码推送到 GitHub 仓库
 2. 访问 Vercel Dashboard，点击「Add New Project」
@@ -373,18 +389,6 @@ Vercel 是 Next.js 的官方托管平台，提供最佳的性能和开发体验�
 4. 点击「Deploy」开始部署
 
 Vercel 会自动检测 Next.js 项目并配置构建命令，无需额外配置。
-
-### Cloudflare Pages 部署
-
-项目已配置完整的 Cloudflare Pages 部署支持，详细部署指南请参考 DEPLOYMENT_CLOUDFLARE.md 文件。该文档包含了环境要求、详细部署步骤、本地测试方法、常见问题解答等内容。
-
-`functions/[[path]].ts` 会随 `npm run lint` 和 `npm run typecheck` 一起接受静态检查，部署前建议先运行这两个命令。
-
-```bash
-# 快速部署命令
-npm run build
-npx wrangler pages deploy .vercel/output/static --project-name=vibeui-generator
-```
 
 ## 常见问题
 
